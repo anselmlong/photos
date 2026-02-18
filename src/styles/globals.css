@@ -1,0 +1,163 @@
+@import "tailwindcss";
+
+@custom-variant dark (&:is(.dark *));
+
+/* Editorial Photography Theme */
+:root {
+  /* Light Mode - Clean Magazine Editorial */
+  --background: oklch(0.98 0.002 90);
+  --foreground: oklch(0.12 0.01 85);
+  --foreground-muted: oklch(0.40 0.01 85);
+  
+  --card: oklch(0.96 0.002 90);
+  --card-foreground: oklch(0.12 0.01 85);
+  
+  --primary: oklch(0.20 0.01 85);
+  --primary-foreground: oklch(0.98 0.002 90);
+  
+  --accent: oklch(0.65 0.06 45);
+  --accent-foreground: oklch(0.12 0.01 85);
+  
+  --muted: oklch(0.94 0.002 90);
+  --muted-foreground: oklch(0.45 0.01 85);
+  
+  --border: oklch(0.90 0.002 90);
+  
+  --font-serif: "Playfair Display", "Georgia", "Times New Roman", serif;
+  --font-sans: system-ui, -apple-system, BlinkMacSystemFont, sans-serif;
+}
+
+.dark {
+  /* Dark Mode - Cinematic Editorial */
+  --background: oklch(0.08 0.01 85);
+  --foreground: oklch(0.94 0.01 85);
+  --foreground-muted: oklch(0.55 0.01 85);
+  
+  --card: oklch(0.12 0.01 85);
+  --card-foreground: oklch(0.94 0.01 85);
+  
+  --primary: oklch(0.94 0.01 85);
+  --primary-foreground: oklch(0.08 0.01 85);
+  
+  --accent: oklch(0.70 0.08 50);
+  --accent-foreground: oklch(0.94 0.01 85);
+  
+  --muted: oklch(0.16 0.01 85);
+  --muted-foreground: oklch(0.50 0.01 85);
+  
+  --border: oklch(0.20 0.01 85);
+}
+
+@theme inline {
+  --color-background: var(--background);
+  --color-foreground: var(--foreground);
+  --color-foreground-muted: var(--foreground-muted);
+  --color-card: var(--card);
+  --color-card-foreground: var(--card-foreground);
+  --color-primary: var(--primary);
+  --color-primary-foreground: var(--primary-foreground);
+  --color-accent: var(--accent);
+  --color-accent-foreground: var(--accent-foreground);
+  --color-muted: var(--muted);
+  --color-muted-foreground: var(--muted-foreground);
+  --color-border: var(--border);
+  --font-serif: var(--font-serif);
+  --font-sans: var(--font-sans);
+}
+
+@layer base {
+  * {
+    @apply border-border;
+  }
+  
+  body {
+    @apply bg-background text-foreground antialiased;
+    font-family: var(--font-sans);
+  }
+  
+  h1, h2, h3, h4, h5, h6 {
+    font-family: var(--font-serif);
+    font-weight: 400;
+    letter-spacing: -0.02em;
+  }
+}
+
+/* Subtle grain overlay for editorial feel */
+body::before {
+  content: "";
+  position: fixed;
+  top: 0;
+  left: 0;
+  width: 100%;
+  height: 100%;
+  pointer-events: none;
+  z-index: 9999;
+  opacity: 0.03;
+  background-image: url("data:image/svg+xml,%3Csvg viewBox='0 0 200 200' xmlns='http://www.w3.org/2000/svg'%3E%3Cfilter id='n'%3E%3CfeTurbulence type='fractalNoise' baseFrequency='0.8' numOctaves='4' stitchTiles='stitch'/%3E%3C/filter%3E%3Crect width='100%25' height='100%25' filter='url(%23n)'/%3E%3C/svg%3E");
+}
+
+/* Animations */
+@keyframes fadeIn {
+  from { opacity: 0; }
+  to { opacity: 1; }
+}
+
+@keyframes fadeInUp {
+  from { opacity: 0; transform: translateY(20px); }
+  to { opacity: 1; transform: translateY(0); }
+}
+
+@keyframes scaleIn {
+  from { opacity: 0; transform: scale(0.98); }
+  to { opacity: 1; transform: scale(1); }
+}
+
+.animate-fadeIn {
+  animation: fadeIn 0.5s ease-out;
+}
+
+.animate-fadeInUp {
+  animation: fadeInUp 0.6s ease-out;
+}
+
+.animate-scaleIn {
+  animation: scaleIn 0.4s ease-out;
+}
+
+/* Selection */
+::selection {
+  background-color: var(--accent);
+  color: var(--primary-foreground);
+}
+
+/* Smooth scrollbar */
+html {
+  scroll-behavior: smooth;
+}
+
+::-webkit-scrollbar {
+  width: 6px;
+}
+
+::-webkit-scrollbar-track {
+  background: transparent;
+}
+
+::-webkit-scrollbar-thumb {
+  background: var(--muted-foreground);
+  border-radius: 3px;
+}
+
+::-webkit-scrollbar-thumb:hover {
+  background: var(--foreground-muted);
+}
+
+/* Image hover effect */
+.img-hover {
+  transition: transform 0.5s cubic-bezier(0.4, 0, 0.2, 1), 
+              opacity 0.3s ease;
+}
+
+.img-hover:hover {
+  transform: scale(1.02);
+}
