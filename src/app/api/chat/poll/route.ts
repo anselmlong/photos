@@ -1,4 +1,4 @@
-import { countMessages, getMessages, getRedis, isValidSession } from "@/lib/chat-store";
+import { getHostPresence, getMessages, getRedis, isValidSession } from "@/lib/chat-store";
 
 export const runtime = "nodejs";
 
@@ -19,9 +19,10 @@ export async function GET(req: Request) {
 
   const messages = await getMessages(redis, session, after);
   const total = after + messages.length;
+  const hostSeen = await getHostPresence(redis);
 
   return Response.json(
-    { messages, total },
+    { messages, total, hostSeen },
     { headers: { "Cache-Control": "no-store" } }
   );
 }

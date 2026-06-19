@@ -1,4 +1,4 @@
-import { appendMessage, getRedis } from "@/lib/chat-store";
+import { appendMessage, getRedis, touchHostPresence } from "@/lib/chat-store";
 
 export const runtime = "nodejs";
 
@@ -33,6 +33,9 @@ export async function POST(req: Request) {
 
   // Only accept replies from Anselm's own chat.
   if (!text || fromChat !== String(chatId)) return Response.json({ ok: true });
+
+  // Any message from Anselm marks him as recently active.
+  await touchHostPresence(redis);
 
   const tag = repliedText?.match(SESSION_TAG);
   if (!tag) {

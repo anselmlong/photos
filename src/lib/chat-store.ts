@@ -37,3 +37,17 @@ export async function getMessages(redis: Redis, session: string, from = 0): Prom
 export async function countMessages(redis: Redis, session: string): Promise<number> {
   return (await redis.llen(key(session))) ?? 0;
 }
+
+const PRESENCE_KEY = "presence:host";
+
+/** Record that Anselm just interacted with the bot (used for the "last active" badge). */
+export async function touchHostPresence(redis: Redis) {
+  await redis.set(PRESENCE_KEY, Date.now(), { ex: 60 * 60 * 24 * 30 });
+}
+
+export async function getHostPresence(redis: Redis): Promise<number | null> {
+  const v = await redis.get<number | string>(PRESENCE_KEY);
+  if (v == null) return null;
+  const n = typeof v === "number" ? v : Number(v);
+  return Number.isFinite(n) ? n : null;
+}

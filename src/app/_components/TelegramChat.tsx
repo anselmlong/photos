@@ -23,6 +23,17 @@ function getSession(): string {
   return s;
 }
 
+function hostPresence(ts: number | null): { label: string; state: "live" | "recent" | "idle" } {
+  if (!ts) return { label: "Usually replies within a day", state: "idle" };
+  const m = Math.floor((Date.now() - ts) / 60000);
+  if (m < 3) return { label: "Active now", state: "live" };
+  if (m < 60) return { label: `Active ${m}m ago`, state: "recent" };
+  const h = Math.floor(m / 60);
+  if (h < 24) return { label: `Active ${h}h ago`, state: "idle" };
+  const d = Math.floor(h / 24);
+  return { label: `Active ${d}d ago`, state: "idle" };
+}
+
 export function TelegramChat() {
   const [open, setOpen] = useState(false);
   const [messages, setMessages] = useState<Msg[]>([]);
@@ -31,6 +42,7 @@ export function TelegramChat() {
   const [unavailable, setUnavailable] = useState(false);
   const [name, setName] = useState("");
   const [nameInput, setNameInput] = useState("");
+  const [hostSeen, setHostSeen] = useState<number | null>(null);
   const sessionRef = useRef<string>("");
   const cursorRef = useRef<number>(0);
   const bottomRef = useRef<HTMLDivElement>(null);
@@ -48,11 +60,12 @@ export function TelegramChat() {
         return;
       }
       if (!res.ok) return;
-      const data = (await res.json()) as { messages: Msg[]; total: number };
+      const data = (await res.json()) as { messages: Msg[]; total: number; hostSeen: number | null };
       if (data.messages?.length) {
         setMessages((prev) => [...prev, ...data.messages]);
         cursorRef.current = data.total;
       }
+      setHostSeen(data.hostSeen ?? null);
     } catch {
       /* network blip — next tick retries */
     }
@@ -117,12 +130,30 @@ export function TelegramChat() {
         aria-hidden={!open}
       >
         <header className="flex items-center justify-between border-b border-white/10 px-4 py-3">
-          <div className="flex items-center gap-2">
-            <span className="relative flex h-2.5 w-2.5">
-              <span className="absolute inline-flex h-full w-full animate-ping rounded-full bg-emerald-400 opacity-70" />
-              <span className="relative inline-flex h-2.5 w-2.5 rounded-full bg-emerald-400" />
-            </span>
-            <span className="font-serif text-base text-white">Chat with Anselm</span>
+          <div className="flex items-center gap-2.5">
+            {(() => {
+              const p = hostPresence(hostSeen);
+              const green = p.state === "live" || p.state === "recent";
+              return (
+                <>
+                  <span className="relative flex h-2.5 w-2.5">
+                    {p.state === "live" && (
+                      <span className="absolute inline-flex h-full w-full animate-ping rounded-full bg-emerald-400 opacity-70" />
+                    )}
+                    <span
+                      className={cn(
+                        "relative inline-flex h-2.5 w-2.5 rounded-full",
+                        green ? "bg-emerald-400" : "bg-amber-400/70"
+                      )}
+                    />
+                  </span>
+                  <div className="leading-tight">
+                    <div className="font-serif text-base text-white">Chat with Anselm</div>
+                    <div className="text-[11px] text-white/45">{p.label}</div>
+                  </div>
+                </>
+              );
+            })()}
           </div>
           <button onClick={() => setOpen(false)} className="text-white/50 hover:text-white" aria-label="Close chat">
             <svg className="h-5 w-5" fill="none" stroke="currentColor" strokeWidth={1.5} viewBox="0 0 24 24">
