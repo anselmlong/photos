@@ -2,11 +2,10 @@ import "@/styles/globals.css";
 
 import { type Metadata } from "next";
 import { Playfair_Display, Source_Sans_3 } from "next/font/google";
-import { ThemeProvider } from "./_components/ThemeProvider";
 
 export const metadata: Metadata = {
   title: "Anselm Long — Photography",
-  description: "Portraits, families, events, lifestyle, and kids photography by Anselm Long",
+  description: "Portraits, weddings, events, and motion work by Anselm Long",
   icons: [{ rel: "icon", url: "/favicon.ico" }],
   openGraph: {
     title: "Anselm Long — Photography",
@@ -35,30 +34,8 @@ export default function RootLayout({
   children: React.ReactNode;
 }>) {
   return (
-    <html 
-      lang="en" 
-      className={`${playfair.variable} ${sourceSans.variable}`}
-      suppressHydrationWarning
-    >
-      <head>
-        <script
-          dangerouslySetInnerHTML={{
-            __html: `
-              (function() {
-                const theme = localStorage.getItem('theme');
-                if (theme === 'dark' || (!theme && window.matchMedia('(prefers-color-scheme: dark)').matches)) {
-                  document.documentElement.classList.add('dark');
-                }
-              })();
-            `,
-          }}
-        />
-      </head>
-      <body className="bg-background text-foreground min-h-screen">
-        <ThemeProvider>
-          {children}
-        </ThemeProvider>
-      </body>
+    <html lang="en" className={`dark ${playfair.variable} ${sourceSans.variable}`}>
+      <body className="bg-background text-foreground min-h-screen">{children}</body>
     </html>
   );
 }

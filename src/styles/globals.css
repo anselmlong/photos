@@ -183,7 +183,8 @@ html {
 /* Reduced motion: stop ambient animation */
 @media (prefers-reduced-motion: reduce) {
   .animate-marquee,
-  .animate-bounce {
+  .animate-bounce,
+  .animate-ping {
     animation: none !important;
   }
   html {

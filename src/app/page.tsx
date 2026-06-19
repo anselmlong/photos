@@ -9,27 +9,26 @@ import { AutoVideo } from "./_components/AutoVideo";
 import { OptimizedImage } from "./_components/OptimizedImage";
 import { Lightbox, asPhotoItems, type LightboxItem } from "./_components/Lightbox";
 import { useLightbox } from "./_components/useLightbox";
-import { photos, videos } from "@/lib/media";
+import { TelegramChat } from "./_components/TelegramChat";
+import { photos, videos, categories } from "@/lib/media";
 
 gsap.registerPlugin(ScrollTrigger, useGSAP);
 
 export default function Home() {
   const root = useRef<HTMLDivElement>(null);
 
-  // Hero plays the "legacy" clip; the rest fill the film rail.
   const heroVideo = videos.find((v) => v.slug === "legacy-cropped") ?? videos[0];
   const restVideos = videos.filter((v) => v.slug !== heroVideo?.slug);
 
-  // Lightbox spans every clip then every still.
   const items: LightboxItem[] = [
     ...videos.map((v) => ({ kind: "video" as const, ...v })),
     ...asPhotoItems(photos),
   ];
   const lb = useLightbox(items);
+  const photoIndex = (slug: string) => videos.length + photos.findIndex((p) => p.slug === slug);
 
   useGSAP(
     () => {
-      // Hero intro
       gsap.from(".hero-line", {
         yPercent: 120,
         opacity: 0,
@@ -39,19 +38,17 @@ export default function Home() {
         delay: 0.2,
       });
 
-      // Gentle section reveals (kept for reduced-motion too)
       gsap.utils.toArray<HTMLElement>(".reveal").forEach((el) => {
         gsap.from(el, {
           opacity: 0,
-          y: 60,
+          y: 50,
           duration: 1,
           ease: "power3.out",
-          scrollTrigger: { trigger: el, start: "top 85%" },
+          scrollTrigger: { trigger: el, start: "top 88%" },
         });
       });
 
-      // Archive: staggered pop-in as tiles enter
-      ScrollTrigger.batch(".archive-item", {
+      ScrollTrigger.batch(".tile", {
         start: "top 92%",
         onEnter: (els) =>
           gsap.from(els, {
@@ -65,10 +62,8 @@ export default function Home() {
           }),
       });
 
-      // Scroll-driven effects — motion-safe only
       const mm = gsap.matchMedia();
       mm.add("(prefers-reduced-motion: no-preference)", () => {
-        // Hero: content drifts up + fades, video slowly zooms as you scroll past
         gsap.to(".hero-content", {
           yPercent: 30,
           opacity: 0,
@@ -80,31 +75,13 @@ export default function Home() {
           ease: "none",
           scrollTrigger: { trigger: ".hero-section", start: "top top", end: "bottom top", scrub: true },
         });
-
-        // Full-bleed stills: parallax drift inside their frames
-        gsap.utils.toArray<HTMLElement>(".parallax-img").forEach((img) => {
-          gsap.fromTo(
-            img,
-            { yPercent: -10 },
-            {
-              yPercent: 10,
-              ease: "none",
-              scrollTrigger: {
-                trigger: img.parentElement,
-                start: "top bottom",
-                end: "bottom top",
-                scrub: true,
-              },
-            }
-          );
-        });
       });
     },
     { scope: root }
   );
 
   return (
-    <div ref={root} className="dark min-h-screen bg-background text-foreground">
+    <div ref={root} className="min-h-screen bg-background text-foreground">
       <Navigation variant="overlay" />
 
       {/* HERO */}
@@ -133,9 +110,19 @@ export default function Home() {
         </div>
       </section>
 
-      {/* FEATURED FILMS — horizontal rail */}
-      <section className="reveal py-20 md:py-28">
-        <div className="mb-10 px-6 md:px-12">
+      {/* ABOUT — moved near the top */}
+      <section className="reveal mx-auto max-w-3xl px-6 py-20 text-center md:py-28">
+        <p className="mb-6 text-xs uppercase tracking-[0.4em] text-foreground-muted">About</p>
+        <p className="font-serif text-2xl leading-relaxed text-balance md:text-3xl">
+          I&apos;m Anselm — based in Singapore, studying computer science at NUS and working at the
+          intersection of design and engineering. But I&apos;m happiest behind a camera. This is a
+          collection of the moments I&apos;ve chased: portraits, weddings, events, and the occasional film.
+        </p>
+      </section>
+
+      {/* FILMS — horizontal rail */}
+      <section className="reveal py-12 md:py-16">
+        <div className="mb-8 px-6 md:px-12">
           <h2 className="font-serif text-3xl md:text-5xl">Films</h2>
           <p className="mt-3 max-w-md text-foreground-muted">Motion work, in selected frames.</p>
         </div>
@@ -159,54 +146,43 @@ export default function Home() {
         </div>
       </section>
 
-      {/* FILM STRIP — alternating full-bleed stills with parallax */}
-      <section className="space-y-2 md:space-y-3">
-        {photos.slice(0, 6).map((p, i) => (
-          <div
-            key={p.slug}
-            className="relative h-[70svh] w-full cursor-pointer overflow-hidden"
-            onClick={() => lb.open(videos.length + i)}
-          >
-            <OptimizedImage
-              photo={p}
-              priority={i === 0}
-              className="parallax-img absolute inset-x-0 top-[-15%] h-[130%] w-full object-cover"
-            />
-            <div className="absolute inset-0 bg-gradient-to-t from-black/50 to-transparent opacity-0 transition-opacity duration-500 hover:opacity-100" />
-          </div>
-        ))}
-      </section>
-
-      {/* GRID — the full set */}
-      <section className="px-6 py-24 md:px-12 md:py-32">
-        <h2 className="reveal mb-10 font-serif text-3xl md:text-5xl">The Archive</h2>
-        <div className="columns-1 gap-3 sm:columns-2 lg:columns-3 [&>*]:mb-3">
-          {photos.map((p, i) => (
-            <button
-              key={p.slug}
-              onClick={() => lb.open(videos.length + i)}
-              className="archive-item group block w-full break-inside-avoid overflow-hidden rounded-sm"
-            >
-              <OptimizedImage
-                photo={p}
-                className="w-full transition-transform duration-700 group-hover:scale-[1.04]"
-              />
-            </button>
-          ))}
-        </div>
-      </section>
-
-      {/* ABOUT */}
-      <section className="reveal mx-auto max-w-3xl px-6 py-24 text-center md:py-32">
-        <p className="mb-6 text-xs uppercase tracking-[0.4em] text-foreground-muted">About</p>
-        <p className="font-serif text-2xl leading-relaxed text-balance md:text-3xl">
-          I&apos;m Anselm — based in Singapore, studying computer science at NUS and working at the
-          intersection of design and engineering. But I&apos;m happiest behind a camera. This is a
-          collection of the moments I&apos;ve chased: portraits, weddings, events, and the occasional film.
-        </p>
-      </section>
+      {/* PHOTOS — grouped by category, full uncropped frames */}
+      {categories.map((cat) => {
+        const catPhotos = photos.filter((p) => p.category === cat.id);
+        if (catPhotos.length === 0) return null;
+        return (
+          <section key={cat.id} className="px-6 py-12 md:px-12 md:py-16">
+            <h2 className="reveal mb-8 flex items-baseline gap-3 font-serif text-3xl md:text-5xl">
+              {cat.label}
+              <span className="text-base text-foreground-muted">{catPhotos.length}</span>
+            </h2>
+            <div className="columns-1 gap-3 sm:columns-2 lg:columns-3 [&>*]:mb-3">
+              {catPhotos.map((p) => (
+                <button
+                  key={p.slug}
+                  onClick={() => lb.open(photoIndex(p.slug))}
+                  className="tile group relative block w-full break-inside-avoid overflow-hidden rounded-sm"
+                >
+                  <OptimizedImage
+                    photo={p}
+                    className="w-full transition-transform duration-700 ease-out group-hover:scale-[1.05]"
+                  />
+                  <div className="pointer-events-none absolute inset-0 bg-gradient-to-t from-black/70 via-black/0 to-transparent opacity-0 transition-opacity duration-500 group-hover:opacity-100" />
+                  <span className="pointer-events-none absolute bottom-3 left-3 flex translate-y-1 items-center gap-1.5 text-[11px] uppercase tracking-widest text-white opacity-0 transition-all duration-300 group-hover:translate-y-0 group-hover:opacity-100">
+                    <svg className="h-3.5 w-3.5" fill="none" stroke="currentColor" strokeWidth={1.5} viewBox="0 0 24 24">
+                      <path strokeLinecap="round" strokeLinejoin="round" d="M3.75 3.75v4.5m0-4.5h4.5m-4.5 0L9 9m11.25-5.25h-4.5m4.5 0v4.5m0-4.5L15 9m-6 6l-5.25 5.25m0 0v-4.5m0 4.5h4.5M15 15l5.25 5.25m0 0v-4.5m0 4.5h-4.5" />
+                    </svg>
+                    {cat.label}
+                  </span>
+                </button>
+              ))}
+            </div>
+          </section>
+        );
+      })}
 
       <Footer />
+      <TelegramChat />
 
       <Lightbox
         items={items}
