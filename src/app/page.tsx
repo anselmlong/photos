@@ -15,8 +15,10 @@ gsap.registerPlugin(ScrollTrigger, useGSAP);
 
 export default function Home() {
   const root = useRef<HTMLDivElement>(null);
-  const heroVideo = videos[0];
-  const restVideos = videos.slice(1);
+
+  // Hero plays the "legacy" clip; the rest fill the film rail.
+  const heroVideo = videos.find((v) => v.slug === "legacy-cropped") ?? videos[0];
+  const restVideos = videos.filter((v) => v.slug !== heroVideo?.slug);
 
   // Lightbox spans every clip then every still.
   const items: LightboxItem[] = [
@@ -27,6 +29,7 @@ export default function Home() {
 
   useGSAP(
     () => {
+      // Hero intro
       gsap.from(".hero-line", {
         yPercent: 120,
         opacity: 0,
@@ -36,6 +39,7 @@ export default function Home() {
         delay: 0.2,
       });
 
+      // Gentle section reveals (kept for reduced-motion too)
       gsap.utils.toArray<HTMLElement>(".reveal").forEach((el) => {
         gsap.from(el, {
           opacity: 0,
@@ -43,6 +47,56 @@ export default function Home() {
           duration: 1,
           ease: "power3.out",
           scrollTrigger: { trigger: el, start: "top 85%" },
+        });
+      });
+
+      // Archive: staggered pop-in as tiles enter
+      ScrollTrigger.batch(".archive-item", {
+        start: "top 92%",
+        onEnter: (els) =>
+          gsap.from(els, {
+            opacity: 0,
+            y: 40,
+            scale: 0.96,
+            duration: 0.6,
+            stagger: 0.06,
+            ease: "power3.out",
+            overwrite: true,
+          }),
+      });
+
+      // Scroll-driven effects — motion-safe only
+      const mm = gsap.matchMedia();
+      mm.add("(prefers-reduced-motion: no-preference)", () => {
+        // Hero: content drifts up + fades, video slowly zooms as you scroll past
+        gsap.to(".hero-content", {
+          yPercent: 30,
+          opacity: 0,
+          ease: "none",
+          scrollTrigger: { trigger: ".hero-section", start: "top top", end: "bottom top", scrub: true },
+        });
+        gsap.to(".hero-media", {
+          scale: 1.2,
+          ease: "none",
+          scrollTrigger: { trigger: ".hero-section", start: "top top", end: "bottom top", scrub: true },
+        });
+
+        // Full-bleed stills: parallax drift inside their frames
+        gsap.utils.toArray<HTMLElement>(".parallax-img").forEach((img) => {
+          gsap.fromTo(
+            img,
+            { yPercent: -10 },
+            {
+              yPercent: 10,
+              ease: "none",
+              scrollTrigger: {
+                trigger: img.parentElement,
+                start: "top bottom",
+                end: "bottom top",
+                scrub: true,
+              },
+            }
+          );
         });
       });
     },
@@ -54,10 +108,10 @@ export default function Home() {
       <Navigation variant="overlay" />
 
       {/* HERO */}
-      <section className="relative h-[100svh] w-full overflow-hidden">
-        {heroVideo && <AutoVideo video={heroVideo} priority className="absolute inset-0" />}
+      <section className="hero-section relative h-[100svh] w-full overflow-hidden">
+        {heroVideo && <AutoVideo video={heroVideo} priority className="hero-media absolute inset-0" />}
         <div className="absolute inset-0 bg-gradient-to-b from-black/40 via-black/20 to-black/80" />
-        <div className="absolute inset-0 flex flex-col items-center justify-center px-6 text-center text-white">
+        <div className="hero-content absolute inset-0 flex flex-col items-center justify-center px-6 text-center text-white">
           <div className="overflow-hidden">
             <p className="hero-line text-xs uppercase tracking-[0.5em] text-white/70 md:text-sm">
               Photography &amp; Motion
@@ -105,29 +159,33 @@ export default function Home() {
         </div>
       </section>
 
-      {/* FILM STRIP — alternating full-bleed stills */}
+      {/* FILM STRIP — alternating full-bleed stills with parallax */}
       <section className="space-y-2 md:space-y-3">
         {photos.slice(0, 6).map((p, i) => (
           <div
             key={p.slug}
-            className="reveal relative h-[70svh] w-full cursor-pointer overflow-hidden"
+            className="relative h-[70svh] w-full cursor-pointer overflow-hidden"
             onClick={() => lb.open(videos.length + i)}
           >
-            <OptimizedImage photo={p} className="h-full w-full object-cover" priority={i === 0} />
+            <OptimizedImage
+              photo={p}
+              priority={i === 0}
+              className="parallax-img absolute inset-x-0 top-[-15%] h-[130%] w-full object-cover"
+            />
             <div className="absolute inset-0 bg-gradient-to-t from-black/50 to-transparent opacity-0 transition-opacity duration-500 hover:opacity-100" />
           </div>
         ))}
       </section>
 
       {/* GRID — the full set */}
-      <section className="reveal px-6 py-24 md:px-12 md:py-32">
-        <h2 className="mb-10 font-serif text-3xl md:text-5xl">The Archive</h2>
+      <section className="px-6 py-24 md:px-12 md:py-32">
+        <h2 className="reveal mb-10 font-serif text-3xl md:text-5xl">The Archive</h2>
         <div className="columns-1 gap-3 sm:columns-2 lg:columns-3 [&>*]:mb-3">
           {photos.map((p, i) => (
             <button
               key={p.slug}
               onClick={() => lb.open(videos.length + i)}
-              className="group block w-full break-inside-avoid overflow-hidden rounded-sm"
+              className="archive-item group block w-full break-inside-avoid overflow-hidden rounded-sm"
             >
               <OptimizedImage
                 photo={p}
@@ -172,7 +230,10 @@ function Footer() {
       >
         anselmpius@gmail.com
       </a>
-      <div className="mt-8 flex items-center justify-center gap-6 text-sm text-foreground-muted">
+      <div className="mt-8 flex flex-wrap items-center justify-center gap-6 text-sm text-foreground-muted">
+        <a href="https://instagram.com/selmshoots" target="_blank" rel="noopener noreferrer" className="transition-colors hover:text-foreground">
+          Instagram
+        </a>
         <a href="https://anselmlong.com" target="_blank" rel="noopener noreferrer" className="transition-colors hover:text-foreground">
           Portfolio
         </a>
