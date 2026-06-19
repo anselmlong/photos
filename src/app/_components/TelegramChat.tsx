@@ -144,7 +144,8 @@ export function TelegramChat() {
             <form onSubmit={startChat} className="flex h-full flex-col justify-center gap-3 px-1 text-center">
               <p className="font-serif text-xl text-white">Hi there 👋</p>
               <p className="text-sm text-white/60">
-                What should I call you? Then send a message and I&apos;ll reply right here.
+                This is a <span className="text-white">real live chat</span> — Anselm replies
+                personally from Telegram. What should I call you?
               </p>
               <input
                 value={nameInput}
@@ -165,7 +166,8 @@ export function TelegramChat() {
           ) : (
             <>
               <div className="rounded-xl bg-white/5 px-3 py-2 text-sm text-white/70">
-                Hey {name} — leave a message and I&apos;ll reply right here. Keep this tab open to see my response.
+                Hey {name} — this is a live chat, so Anselm will reply personally (from Telegram).
+                It may take a little while; keep this tab open and his reply will show up right here.
               </div>
               {messages.map((m, i) => (
                 <div key={i} className={cn("flex", m.from === "visitor" ? "justify-end" : "justify-start")}>
