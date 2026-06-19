@@ -12,7 +12,7 @@ export async function POST(req: Request) {
     return Response.json({ error: "Live chat isn't configured yet." }, { status: 503 });
   }
 
-  let body: { session?: string; text?: string };
+  let body: { session?: string; text?: string; name?: string };
   try {
     body = await req.json();
   } catch {
@@ -21,6 +21,7 @@ export async function POST(req: Request) {
 
   const session = body.session;
   const text = (body.text ?? "").toString().trim();
+  const name = (body.name ?? "").toString().trim().replace(/\s+/g, " ").slice(0, 80) || "a visitor";
   if (!isValidSession(session)) {
     return Response.json({ error: "Invalid session." }, { status: 400 });
   }
@@ -31,7 +32,7 @@ export async function POST(req: Request) {
   await appendMessage(redis, session, { from: "visitor", text, ts: Date.now() });
 
   // Forward to Telegram. The [#session] tag lets the webhook route Anselm's reply back.
-  const tgText = `💬 [#${session}] new message from photos.anselmlong.com\n\n${text}\n\n↩️ Reply to this message to respond.`;
+  const tgText = `💬 [#${session}] ${name} — via photos.anselmlong.com\n\n${text}\n\n↩️ Reply to this message to respond.`;
   const res = await fetch(`https://api.telegram.org/bot${token}/sendMessage`, {
     method: "POST",
     headers: { "Content-Type": "application/json" },

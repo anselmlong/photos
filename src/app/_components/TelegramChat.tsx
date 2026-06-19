@@ -6,6 +6,7 @@ import { cn } from "@/lib/utils";
 type Msg = { from: "visitor" | "host"; text: string; ts: number };
 
 const SESSION_KEY = "al_chat_session";
+const NAME_KEY = "al_chat_name";
 
 function getSession(): string {
   if (typeof window === "undefined") return "";
@@ -28,6 +29,8 @@ export function TelegramChat() {
   const [draft, setDraft] = useState("");
   const [sending, setSending] = useState(false);
   const [unavailable, setUnavailable] = useState(false);
+  const [name, setName] = useState("");
+  const [nameInput, setNameInput] = useState("");
   const sessionRef = useRef<string>("");
   const cursorRef = useRef<number>(0);
   const bottomRef = useRef<HTMLDivElement>(null);
@@ -59,6 +62,7 @@ export function TelegramChat() {
   useEffect(() => {
     if (!open) return;
     sessionRef.current = getSession();
+    setName(localStorage.getItem(NAME_KEY) || "");
     poll();
     const id = setInterval(poll, 3000);
     return () => clearInterval(id);
@@ -68,6 +72,14 @@ export function TelegramChat() {
   useEffect(() => {
     bottomRef.current?.scrollIntoView({ behavior: "smooth" });
   }, [messages, open]);
+
+  function startChat(e: React.FormEvent) {
+    e.preventDefault();
+    const n = nameInput.trim().slice(0, 80);
+    if (!n) return;
+    localStorage.setItem(NAME_KEY, n);
+    setName(n);
+  }
 
   async function send(e: React.FormEvent) {
     e.preventDefault();
@@ -79,7 +91,7 @@ export function TelegramChat() {
       const res = await fetch("/api/chat/send", {
         method: "POST",
         headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({ session: sessionRef.current, text }),
+        body: JSON.stringify({ session: sessionRef.current, text, name }),
       });
       if (res.status === 503) {
         setUnavailable(true);
@@ -128,10 +140,32 @@ export function TelegramChat() {
               </a>
               .
             </p>
+          ) : !name ? (
+            <form onSubmit={startChat} className="flex h-full flex-col justify-center gap-3 px-1 text-center">
+              <p className="font-serif text-xl text-white">Hi there 👋</p>
+              <p className="text-sm text-white/60">
+                What should I call you? Then send a message and I&apos;ll reply right here.
+              </p>
+              <input
+                value={nameInput}
+                onChange={(e) => setNameInput(e.target.value)}
+                maxLength={80}
+                autoFocus
+                placeholder="Your name"
+                className="mt-2 w-full rounded-xl border border-white/10 bg-white/5 px-3 py-2 text-center text-sm text-white placeholder:text-white/30 focus:border-white/30 focus:outline-none"
+              />
+              <button
+                type="submit"
+                disabled={!nameInput.trim()}
+                className="mt-1 w-full rounded-xl bg-white px-4 py-2 text-sm font-medium text-black transition-opacity hover:opacity-90 disabled:opacity-30"
+              >
+                Start chatting
+              </button>
+            </form>
           ) : (
             <>
               <div className="rounded-xl bg-white/5 px-3 py-2 text-sm text-white/70">
-                Hey — leave a message and I&apos;ll reply right here. Keep this tab open to see my response.
+                Hey {name} — leave a message and I&apos;ll reply right here. Keep this tab open to see my response.
               </div>
               {messages.map((m, i) => (
                 <div key={i} className={cn("flex", m.from === "visitor" ? "justify-end" : "justify-start")}>
@@ -150,7 +184,7 @@ export function TelegramChat() {
           )}
         </div>
 
-        {!unavailable && (
+        {!unavailable && name && (
           <form onSubmit={send} className="flex items-end gap-2 border-t border-white/10 p-3">
             <textarea
               value={draft}
