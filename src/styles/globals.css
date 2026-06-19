@@ -154,10 +154,44 @@ html {
 
 /* Image hover effect */
 .img-hover {
-  transition: transform 0.5s cubic-bezier(0.4, 0, 0.2, 1), 
+  transition: transform 0.5s cubic-bezier(0.4, 0, 0.2, 1),
               opacity 0.3s ease;
 }
 
 .img-hover:hover {
   transform: scale(1.02);
+}
+
+/* Hide scrollbars on horizontal media rails */
+.no-scrollbar {
+  -ms-overflow-style: none;
+  scrollbar-width: none;
+}
+.no-scrollbar::-webkit-scrollbar {
+  display: none;
+}
+
+/* Marquee for kinetic type */
+@keyframes marquee {
+  from { transform: translateX(0); }
+  to { transform: translateX(-50%); }
+}
+.animate-marquee {
+  animation: marquee 30s linear infinite;
+}
+
+/* Reduced motion: stop ambient animation */
+@media (prefers-reduced-motion: reduce) {
+  .animate-marquee,
+  .animate-bounce {
+    animation: none !important;
+  }
+  html {
+    scroll-behavior: auto;
+  }
+}
+
+/* Utility: text wrap balance for headlines */
+.text-balance {
+  text-wrap: balance;
 }

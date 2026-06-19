@@ -35,3 +35,13 @@ next-env.d.ts
 
 # bun
 bun.lockb
+
+# raw portfolio originals (6GB+) — local only; committed derivatives live in public/gallery + public/clips
+/public/images/
+/public/videos/
+
+# agent / tooling state
+.omc/
+/scripts/.image-manifest.json
+/scripts/.video-manifest.json
+.gstack/

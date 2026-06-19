@@ -4,184 +4,188 @@ import { useRef } from "react";
 import { gsap } from "gsap";
 import { ScrollTrigger } from "gsap/ScrollTrigger";
 import { useGSAP } from "@gsap/react";
-import { PhotoGallery } from "./_components/PhotoGallery";
-import { photos, categories } from "@/lib/photos";
+import { Navigation } from "./_components/Navigation";
+import { AutoVideo } from "./_components/AutoVideo";
+import { OptimizedImage } from "./_components/OptimizedImage";
+import { Lightbox, asPhotoItems, type LightboxItem } from "./_components/Lightbox";
+import { useLightbox } from "./_components/useLightbox";
+import { photos, videos } from "@/lib/media";
 
 gsap.registerPlugin(ScrollTrigger, useGSAP);
 
 export default function Home() {
-  const heroRef = useRef<HTMLElement>(null);
-  const galleryRef = useRef<HTMLElement>(null);
+  const root = useRef<HTMLDivElement>(null);
+  const heroVideo = videos[0];
+  const restVideos = videos.slice(1);
 
-  // Hero animations
+  // Lightbox spans every clip then every still.
+  const items: LightboxItem[] = [
+    ...videos.map((v) => ({ kind: "video" as const, ...v })),
+    ...asPhotoItems(photos),
+  ];
+  const lb = useLightbox(items);
+
   useGSAP(
     () => {
-      const ctx = gsap.context(() => {
-        gsap.fromTo(
-          ".hero-text",
-          { opacity: 0, y: 40 },
-          {
-            opacity: 1,
-            y: 0,
-            duration: 1,
-            stagger: 0.2,
-            ease: "power3.out",
-          }
-        );
-      }, heroRef);
+      gsap.from(".hero-line", {
+        yPercent: 120,
+        opacity: 0,
+        duration: 1.1,
+        stagger: 0.12,
+        ease: "power4.out",
+        delay: 0.2,
+      });
 
-      return () => ctx.revert();
+      gsap.utils.toArray<HTMLElement>(".reveal").forEach((el) => {
+        gsap.from(el, {
+          opacity: 0,
+          y: 60,
+          duration: 1,
+          ease: "power3.out",
+          scrollTrigger: { trigger: el, start: "top 85%" },
+        });
+      });
     },
-    { scope: heroRef }
+    { scope: root }
   );
 
-  // Scroll to gallery
-  const scrollToGallery = () => {
-    galleryRef.current?.scrollIntoView({ behavior: "smooth" });
-  };
-
   return (
-    <main className="min-h-screen">
-      {/* Hero Section */}
-      <section
-        ref={heroRef}
-        className="relative min-h-[90vh] flex flex-col items-center justify-center px-6 pt-20"
-      >
-        {/* Background subtle gradient */}
-        <div className="absolute inset-0 bg-gradient-to-b from-background via-background to-muted/30" />
+    <div ref={root} className="dark min-h-screen bg-background text-foreground">
+      <Navigation variant="overlay" />
 
-        <div className="relative z-10 max-w-4xl mx-auto text-center">
-          {/* Tagline */}
-          <p className="hero-text text-sm uppercase tracking-[0.3em] text-foreground-muted mb-8">
-            Photography by Anselm Long
-          </p>
-
-          {/* Main Title */}
-          <h1 className="hero-text font-serif text-5xl sm:text-6xl md:text-7xl lg:text-8xl font-normal leading-[1.1] mb-8">
-            Capturing<br />
-            <span className="italic">Authentic</span><br />
-            Moments
-          </h1>
-
-          {/* Description */}
-          <p className="hero-text text-lg md:text-xl text-foreground-muted max-w-2xl mx-auto leading-relaxed mb-12">
-            I believe in photography that feels natural, warm, and genuine. 
-            Whether it&apos;s a family portrait, a special event, or candid moments 
-            with kids—I&apos;m here to tell your story.
-          </p>
-
-          {/* Stats */}
-          <div className="hero-text flex items-center justify-center gap-8 md:gap-12 text-foreground-muted mb-16">
-            <div className="text-center">
-              <span className="block font-serif text-3xl text-foreground">{photos.length}</span>
-              <span className="text-xs uppercase tracking-widest">Photos</span>
-            </div>
-            <div className="w-px h-10 bg-border" />
-            <div className="text-center">
-              <span className="block font-serif text-3xl text-foreground">{categories.length}</span>
-              <span className="text-xs uppercase tracking-widest">Categories</span>
-            </div>
-          </div>
-
-          {/* Scroll indicator */}
-          <button
-            onClick={scrollToGallery}
-            className="hero-text group flex flex-col items-center gap-3 text-foreground-muted hover:text-foreground transition-colors"
-          >
-            <span className="text-xs uppercase tracking-[0.2em]">View Gallery</span>
-            <svg
-              className="w-5 h-5 animate-bounce"
-              fill="none"
-              stroke="currentColor"
-              strokeWidth={1}
-              viewBox="0 0 24 24"
-            >
-              <path strokeLinecap="round" strokeLinejoin="round" d="M19.5 8.25l-7.5 7.5-7.5-7.5" />
-            </svg>
-          </button>
-        </div>
-
-        {/* Decorative elements */}
-        <div className="absolute bottom-0 left-1/2 -translate-x-1/2 w-px h-24 bg-gradient-to-b from-transparent to-border" />
-      </section>
-
-      {/* Gallery Section */}
-      <section
-        ref={galleryRef}
-        id="gallery"
-        className="relative py-24 md:py-32 px-6 md:px-12 lg:px-16"
-      >
-        <div className="max-w-[1800px] mx-auto">
-          {/* Section Header */}
-          <div className="text-center mb-16">
-            <h2 className="font-serif text-3xl md:text-4xl mb-4">The Work</h2>
-            <p className="text-foreground-muted max-w-lg mx-auto">
-              A selection of portraits, family sessions, events, and candid moments
+      {/* HERO */}
+      <section className="relative h-[100svh] w-full overflow-hidden">
+        {heroVideo && <AutoVideo video={heroVideo} priority className="absolute inset-0" />}
+        <div className="absolute inset-0 bg-gradient-to-b from-black/40 via-black/20 to-black/80" />
+        <div className="absolute inset-0 flex flex-col items-center justify-center px-6 text-center text-white">
+          <div className="overflow-hidden">
+            <p className="hero-line text-xs uppercase tracking-[0.5em] text-white/70 md:text-sm">
+              Photography &amp; Motion
             </p>
           </div>
-
-          {/* Gallery */}
-          <PhotoGallery photos={photos} />
+          <h1 className="mt-4 font-serif text-[15vw] leading-[0.9] md:text-[11vw] lg:text-[9rem]">
+            <span className="block overflow-hidden">
+              <span className="hero-line block">Anselm</span>
+            </span>
+            <span className="block overflow-hidden">
+              <span className="hero-line block italic">Long</span>
+            </span>
+          </h1>
+        </div>
+        <div className="absolute bottom-8 left-1/2 -translate-x-1/2 text-white/60">
+          <svg className="h-6 w-6 animate-bounce" fill="none" stroke="currentColor" strokeWidth={1} viewBox="0 0 24 24">
+            <path strokeLinecap="round" strokeLinejoin="round" d="M19.5 8.25l-7.5 7.5-7.5-7.5" />
+          </svg>
         </div>
       </section>
 
-      {/* Contact Section */}
-      <section className="py-24 md:py-32 px-6 border-t border-border">
-        <div className="max-w-2xl mx-auto text-center">
-          <h2 className="font-serif text-3xl md:text-4xl mb-6">
-            Let&apos;s Work Together
-          </h2>
-          <p className="text-foreground-muted mb-10 leading-relaxed">
-            I&apos;d love to hear about your project. Whether you&apos;re planning 
-            a family session, need event coverage, or want to create something 
-            special—reach out and let&apos;s make it happen.
-          </p>
-          
-          <div className="flex flex-col sm:flex-row items-center justify-center gap-4">
-            <a
-              href="mailto:hello@anselmlong.com"
-              className="inline-flex items-center gap-2 px-8 py-4 bg-foreground text-background font-medium tracking-wide hover:opacity-90 transition-opacity"
-            >
-              Get in Touch
-              <svg className="w-4 h-4" fill="none" stroke="currentColor" strokeWidth={2} viewBox="0 0 24 24">
-                <path strokeLinecap="round" strokeLinejoin="round" d="M13.5 4.5L21 12m0 0l-7.5 7.5M21 12H3" />
-              </svg>
-            </a>
-            
-            <a
-              href="https://anselmlong.com"
-              target="_blank"
-              rel="noopener noreferrer"
-              className="inline-flex items-center gap-2 px-8 py-4 border border-border text-foreground hover:bg-muted transition-colors"
-            >
-              View Portfolio
-            </a>
-          </div>
+      {/* FEATURED FILMS — horizontal rail */}
+      <section className="reveal py-20 md:py-28">
+        <div className="mb-10 px-6 md:px-12">
+          <h2 className="font-serif text-3xl md:text-5xl">Films</h2>
+          <p className="mt-3 max-w-md text-foreground-muted">Motion work, in selected frames.</p>
+        </div>
+        <div className="no-scrollbar flex snap-x snap-mandatory gap-4 overflow-x-auto px-6 pb-4 md:px-12">
+          {restVideos.map((v) => {
+            const idx = videos.findIndex((x) => x.slug === v.slug);
+            return (
+              <button
+                key={v.slug}
+                onClick={() => lb.open(idx)}
+                className="group relative aspect-video w-[85vw] flex-shrink-0 snap-center overflow-hidden rounded-sm md:w-[60vw] lg:w-[44vw]"
+              >
+                <AutoVideo video={v} />
+                <div className="absolute inset-0 bg-black/20 transition-colors group-hover:bg-black/0" />
+                <span className="absolute bottom-4 left-4 font-serif text-lg text-white drop-shadow">
+                  {v.title}
+                </span>
+              </button>
+            );
+          })}
         </div>
       </section>
 
-      {/* Footer */}
-      <footer className="py-12 px-6 border-t border-border">
-        <div className="max-w-7xl mx-auto flex flex-col md:flex-row items-center justify-between gap-6">
-          <p className="font-serif text-lg">Anselm Long</p>
-          
-          <div className="flex items-center gap-6 text-sm text-foreground-muted">
-            <a href="https://anselmlong.com" className="hover:text-foreground transition-colors">
-              Portfolio
-            </a>
-            <a href="https://instagram.com" className="hover:text-foreground transition-colors">
-              Instagram
-            </a>
-            <a href="mailto:hello@anselmlong.com" className="hover:text-foreground transition-colors">
-              Contact
-            </a>
+      {/* FILM STRIP — alternating full-bleed stills */}
+      <section className="space-y-2 md:space-y-3">
+        {photos.slice(0, 6).map((p, i) => (
+          <div
+            key={p.slug}
+            className="reveal relative h-[70svh] w-full cursor-pointer overflow-hidden"
+            onClick={() => lb.open(videos.length + i)}
+          >
+            <OptimizedImage photo={p} className="h-full w-full object-cover" priority={i === 0} />
+            <div className="absolute inset-0 bg-gradient-to-t from-black/50 to-transparent opacity-0 transition-opacity duration-500 hover:opacity-100" />
           </div>
-          
-          <p className="text-sm text-foreground-muted">
-            © {new Date().getFullYear()} All rights reserved
-          </p>
+        ))}
+      </section>
+
+      {/* GRID — the full set */}
+      <section className="reveal px-6 py-24 md:px-12 md:py-32">
+        <h2 className="mb-10 font-serif text-3xl md:text-5xl">The Archive</h2>
+        <div className="columns-1 gap-3 sm:columns-2 lg:columns-3 [&>*]:mb-3">
+          {photos.map((p, i) => (
+            <button
+              key={p.slug}
+              onClick={() => lb.open(videos.length + i)}
+              className="group block w-full break-inside-avoid overflow-hidden rounded-sm"
+            >
+              <OptimizedImage
+                photo={p}
+                className="w-full transition-transform duration-700 group-hover:scale-[1.04]"
+              />
+            </button>
+          ))}
         </div>
-      </footer>
-    </main>
+      </section>
+
+      {/* ABOUT */}
+      <section className="reveal mx-auto max-w-3xl px-6 py-24 text-center md:py-32">
+        <p className="mb-6 text-xs uppercase tracking-[0.4em] text-foreground-muted">About</p>
+        <p className="font-serif text-2xl leading-relaxed text-balance md:text-3xl">
+          I&apos;m Anselm — based in Singapore, studying computer science at NUS and working at the
+          intersection of design and engineering. But I&apos;m happiest behind a camera. This is a
+          collection of the moments I&apos;ve chased: portraits, weddings, events, and the occasional film.
+        </p>
+      </section>
+
+      <Footer />
+
+      <Lightbox
+        items={items}
+        currentIndex={lb.index}
+        isOpen={lb.isOpen}
+        onClose={lb.close}
+        onNavigate={lb.navigate}
+        onGoToIndex={lb.goToIndex}
+      />
+    </div>
+  );
+}
+
+function Footer() {
+  return (
+    <footer className="border-t border-border px-6 py-16 text-center md:px-12">
+      <h2 className="font-serif text-3xl md:text-4xl">Let&apos;s create something.</h2>
+      <a
+        href="mailto:anselmpius@gmail.com"
+        className="mt-6 inline-flex items-center gap-2 border-b border-foreground pb-1 text-lg transition-opacity hover:opacity-70"
+      >
+        anselmpius@gmail.com
+      </a>
+      <div className="mt-8 flex items-center justify-center gap-6 text-sm text-foreground-muted">
+        <a href="https://anselmlong.com" target="_blank" rel="noopener noreferrer" className="transition-colors hover:text-foreground">
+          Portfolio
+        </a>
+        <a href="https://linkedin.com/in/anselmlong" target="_blank" rel="noopener noreferrer" className="transition-colors hover:text-foreground">
+          LinkedIn
+        </a>
+        <a href="https://github.com/anselmlong" target="_blank" rel="noopener noreferrer" className="transition-colors hover:text-foreground">
+          GitHub
+        </a>
+      </div>
+      <p className="mt-12 text-xs uppercase tracking-[0.2em] text-foreground-muted">
+        © {new Date().getFullYear()} Anselm Long
+      </p>
+    </footer>
   );
 }

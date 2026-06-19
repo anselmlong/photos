@@ -1,0 +1,9 @@
+# Raw portfolio originals (6GB+) — never upload; only optimized derivatives in
+# public/gallery and public/clips ship to Vercel.
+public/images
+public/videos
+
+# tooling / local state
+.omc
+scripts/.image-manifest.json
+scripts/.video-manifest.json

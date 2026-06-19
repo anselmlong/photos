@@ -3,7 +3,6 @@ import "@/styles/globals.css";
 import { type Metadata } from "next";
 import { Playfair_Display, Source_Sans_3 } from "next/font/google";
 import { ThemeProvider } from "./_components/ThemeProvider";
-import { Navigation } from "./_components/Navigation";
 
 export const metadata: Metadata = {
   title: "Anselm Long — Photography",
@@ -57,7 +56,6 @@ export default function RootLayout({
       </head>
       <body className="bg-background text-foreground min-h-screen">
         <ThemeProvider>
-          <Navigation />
           {children}
         </ThemeProvider>
       </body>
