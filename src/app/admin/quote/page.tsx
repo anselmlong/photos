@@ -1,7 +1,7 @@
 "use client";
 
 import dynamic from "next/dynamic";
-import { useEffect, useMemo, useState } from "react";
+import { type ReactNode, useEffect, useMemo, useState } from "react";
 import { bookingSchema } from "@/lib/booking-schema";
 import type { BookingEnquiry, LineItem, QuoteData } from "@/lib/types";
 
@@ -82,6 +82,21 @@ function MetaBlock({ label, value, sub }: { label: string; value: string; sub?: 
       <p className="mb-0.5 text-[10px] uppercase tracking-widest text-neutral-400">{label}</p>
       <p className="truncate text-sm font-semibold text-neutral-900">{value}</p>
       {sub && <p className="truncate text-xs text-neutral-500">{sub}</p>}
+    </div>
+  );
+}
+
+function EditorField({
+  label,
+  children,
+}: {
+  label: string;
+  children: ReactNode;
+}) {
+  return (
+    <div className="flex flex-col gap-1.5">
+      <label className="text-xs text-foreground-muted">{label}</label>
+      {children}
     </div>
   );
 }
@@ -169,6 +184,13 @@ export default function AdminQuotePage() {
     );
   }
 
+  function updateEnquiryField<K extends keyof BookingEnquiry>(
+    field: K,
+    value: BookingEnquiry[K]
+  ) {
+    setEnquiry((prev) => (prev ? { ...prev, [field]: value } : prev));
+  }
+
   if (!enquiry) {
     return (
       <main className="flex min-h-screen items-center justify-center px-6 text-center text-sm text-foreground-muted">
@@ -176,6 +198,15 @@ export default function AdminQuotePage() {
       </main>
     );
   }
+
+  const firstName = enquiry.name.trim().split(/\s+/)[0] || enquiry.name;
+  const clientEmailSubject = encodeURIComponent(
+    `Quotation ${quoteNum || ""} for ${enquiry.eventTitle}`.trim()
+  );
+  const clientEmailBody = encodeURIComponent(
+    `Hi ${firstName},\n\nThanks for sharing the details for ${enquiry.eventTitle}. Please find the quotation PDF attached.\n\nBest,\nAnselm`
+  );
+  const clientEmailHref = `mailto:${enquiry.email}?subject=${clientEmailSubject}&body=${clientEmailBody}`;
 
   return (
     <main className="flex min-h-screen flex-col bg-background md:flex-row">
@@ -194,6 +225,172 @@ export default function AdminQuotePage() {
               placeholder="Q-20260715"
               className={inputClassName}
             />
+          </div>
+
+          <div className="border-t border-border/50 pt-5">
+            <p className="mb-3 text-xs uppercase tracking-widest text-foreground-muted">
+              Client details
+            </p>
+            <div className="grid gap-3 sm:grid-cols-2">
+              <EditorField label="Client name">
+                <input
+                  value={enquiry.name}
+                  onChange={(event) => updateEnquiryField("name", event.target.value)}
+                  className={inputClassName}
+                />
+              </EditorField>
+              <EditorField label="Client email">
+                <input
+                  type="email"
+                  value={enquiry.email}
+                  onChange={(event) => updateEnquiryField("email", event.target.value)}
+                  className={inputClassName}
+                />
+              </EditorField>
+              <EditorField label="Phone / WhatsApp">
+                <input
+                  value={enquiry.phone ?? ""}
+                  onChange={(event) =>
+                    updateEnquiryField("phone", event.target.value || undefined)
+                  }
+                  className={inputClassName}
+                />
+              </EditorField>
+              <EditorField label="Preferred contact">
+                <select
+                  value={enquiry.preferredContact ?? ""}
+                  onChange={(event) =>
+                    updateEnquiryField(
+                      "preferredContact",
+                      (event.target.value || undefined) as BookingEnquiry["preferredContact"]
+                    )
+                  }
+                  className={inputClassName}
+                >
+                  <option value="">Not specified</option>
+                  <option value="email">Email</option>
+                  <option value="whatsapp">WhatsApp</option>
+                </select>
+              </EditorField>
+            </div>
+          </div>
+
+          <div className="border-t border-border/50 pt-5">
+            <p className="mb-3 text-xs uppercase tracking-widest text-foreground-muted">
+              Event details
+            </p>
+            <div className="grid gap-3 sm:grid-cols-2">
+              <EditorField label="Event title">
+                <input
+                  value={enquiry.eventTitle}
+                  onChange={(event) => updateEnquiryField("eventTitle", event.target.value)}
+                  className={inputClassName}
+                />
+              </EditorField>
+              <EditorField label="Event type">
+                <input
+                  value={enquiry.eventType}
+                  onChange={(event) => updateEnquiryField("eventType", event.target.value)}
+                  className={inputClassName}
+                />
+              </EditorField>
+              <EditorField label="Event date">
+                <input
+                  type="date"
+                  value={enquiry.eventDate}
+                  onChange={(event) => updateEnquiryField("eventDate", event.target.value)}
+                  className={inputClassName}
+                />
+              </EditorField>
+              <EditorField label="Time">
+                <div className="grid grid-cols-[1fr_auto_1fr] items-center gap-2">
+                  <input
+                    type="time"
+                    value={enquiry.startTime}
+                    onChange={(event) => updateEnquiryField("startTime", event.target.value)}
+                    className={inputClassName}
+                  />
+                  <span className="text-xs text-foreground-muted">to</span>
+                  <input
+                    type="time"
+                    value={enquiry.endTime}
+                    onChange={(event) => updateEnquiryField("endTime", event.target.value)}
+                    className={inputClassName}
+                  />
+                </div>
+              </EditorField>
+              <EditorField label="Venue">
+                <input
+                  value={enquiry.venue}
+                  onChange={(event) => updateEnquiryField("venue", event.target.value)}
+                  className={inputClassName}
+                />
+              </EditorField>
+              <EditorField label="Venue address">
+                <textarea
+                  value={enquiry.venueAddress ?? ""}
+                  onChange={(event) =>
+                    updateEnquiryField("venueAddress", event.target.value || undefined)
+                  }
+                  rows={2}
+                  className={inputClassName}
+                />
+              </EditorField>
+              <EditorField label="Services">
+                <select
+                  value={enquiry.services}
+                  onChange={(event) =>
+                    updateEnquiryField("services", event.target.value as BookingEnquiry["services"])
+                  }
+                  className={inputClassName}
+                >
+                  <option value="photography">Photography</option>
+                  <option value="videography">Videography</option>
+                  <option value="both">Both</option>
+                </select>
+              </EditorField>
+              <EditorField label="Duration">
+                <input
+                  value={enquiry.duration}
+                  onChange={(event) => updateEnquiryField("duration", event.target.value)}
+                  className={inputClassName}
+                />
+              </EditorField>
+              <EditorField label="Deliverables">
+                <select
+                  value={enquiry.deliverables ?? ""}
+                  onChange={(event) =>
+                    updateEnquiryField(
+                      "deliverables",
+                      (event.target.value || undefined) as BookingEnquiry["deliverables"]
+                    )
+                  }
+                  className={inputClassName}
+                >
+                  <option value="">Not specified</option>
+                  <option value="photos">Edited photos</option>
+                  <option value="reel">Highlight reel</option>
+                  <option value="both">Both</option>
+                  <option value="raw">Raw files</option>
+                </select>
+              </EditorField>
+              <EditorField label="Turnaround">
+                <select
+                  value={enquiry.turnaround ?? ""}
+                  onChange={(event) =>
+                    updateEnquiryField(
+                      "turnaround",
+                      (event.target.value || undefined) as BookingEnquiry["turnaround"]
+                    )
+                  }
+                  className={inputClassName}
+                >
+                  <option value="">Not specified</option>
+                  <option value="standard">Standard</option>
+                  <option value="rush">Rush</option>
+                </select>
+              </EditorField>
+            </div>
           </div>
 
           <div>
@@ -307,7 +504,20 @@ export default function AdminQuotePage() {
             />
           </div>
 
-          <div className="pt-2">{quoteData && <PDFDownloadButton data={quoteData} fileName={fileName} />}</div>
+          <div className="flex flex-col gap-2 pt-2">
+            <div className="flex flex-wrap gap-2">
+              {quoteData && <PDFDownloadButton data={quoteData} fileName={fileName} />}
+              <a
+                href={clientEmailHref}
+                className="inline-flex rounded-full border border-foreground/20 px-6 py-2.5 text-sm text-foreground transition-colors hover:bg-foreground hover:text-background"
+              >
+                Open client email draft
+              </a>
+            </div>
+            <p className="text-xs leading-relaxed text-foreground-muted">
+              Download the PDF first, then attach it to the email draft before sending.
+            </p>
+          </div>
         </div>
       </aside>
 
@@ -331,17 +541,34 @@ export default function AdminQuotePage() {
           </div>
 
           <div className="mb-5 flex gap-8">
-            <MetaBlock label="Prepared for" value={enquiry.name} sub={enquiry.email} />
+            <MetaBlock
+              label="Prepared for"
+              value={enquiry.name}
+              sub={`${enquiry.email}${enquiry.phone ? ` - ${enquiry.phone}` : ""}`}
+            />
             <MetaBlock
               label="Event"
-              value={enquiry.eventTitle}
+              value={`${enquiry.eventTitle} (${enquiry.eventType})`}
               sub={`${enquiry.eventDate} - ${enquiry.startTime}-${enquiry.endTime}`}
             />
             <MetaBlock
               label="Services"
               value={formatLabel(enquiry.services)}
-              sub={enquiry.duration}
+              sub={`${enquiry.duration}${enquiry.turnaround === "rush" ? " - rush" : ""}`}
             />
+          </div>
+
+          <div className="mb-5 border-y border-neutral-100 py-3 text-[8pt] leading-relaxed text-neutral-500">
+            <p>
+              <span className="font-bold text-neutral-700">Venue:</span> {enquiry.venue}
+              {enquiry.venueAddress ? `, ${enquiry.venueAddress}` : ""}
+            </p>
+            {enquiry.deliverables && (
+              <p>
+                <span className="font-bold text-neutral-700">Deliverables:</span>{" "}
+                {formatLabel(enquiry.deliverables)}
+              </p>
+            )}
           </div>
 
           <div className="mt-4">

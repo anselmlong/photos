@@ -27,6 +27,16 @@ const styles = StyleSheet.create({
   metaGrid: { flexDirection: "row", marginBottom: 20 },
   metaBlock: { flexBasis: 0, flexGrow: 1, marginRight: 24 },
   metaBlockLast: { flexBasis: 0, flexGrow: 1, marginRight: 0 },
+  detailBox: {
+    borderBottomColor: "#eeeeee",
+    borderBottomWidth: 1,
+    borderTopColor: "#eeeeee",
+    borderTopWidth: 1,
+    marginBottom: 16,
+    paddingVertical: 8,
+  },
+  detailText: { color: "#444444", fontSize: 8, lineHeight: 1.5 },
+  detailLabel: { fontFamily: "Helvetica-Bold" },
   label: {
     color: "#999999",
     fontSize: 7,
@@ -153,7 +163,9 @@ export function QuotePDF({ data }: { data: QuoteData }) {
           </View>
           <View style={styles.metaBlock}>
             <Text style={styles.label}>Event</Text>
-            <Text style={styles.value}>{enquiry.eventTitle}</Text>
+            <Text style={styles.value}>
+              {enquiry.eventTitle} ({enquiry.eventType})
+            </Text>
             <Text style={styles.valueSub}>
               {enquiry.eventDate} - {enquiry.startTime}-{enquiry.endTime}
             </Text>
@@ -163,9 +175,29 @@ export function QuotePDF({ data }: { data: QuoteData }) {
             <Text style={styles.label}>Services</Text>
             <Text style={styles.value}>{formatLabel(enquiry.services)}</Text>
             <Text style={styles.valueSub}>{enquiry.duration}</Text>
+            {enquiry.deliverables && (
+              <Text style={styles.valueSub}>{formatLabel(enquiry.deliverables)}</Text>
+            )}
             {enquiry.turnaround === "rush" && <Text style={styles.valueSub}>Rush delivery</Text>}
           </View>
         </View>
+
+        {(enquiry.venueAddress || enquiry.preferredContact) && (
+          <View style={styles.detailBox}>
+            {enquiry.venueAddress && (
+              <Text style={styles.detailText}>
+                <Text style={styles.detailLabel}>Venue address: </Text>
+                {enquiry.venueAddress}
+              </Text>
+            )}
+            {enquiry.preferredContact && (
+              <Text style={styles.detailText}>
+                <Text style={styles.detailLabel}>Preferred contact: </Text>
+                {formatLabel(enquiry.preferredContact)}
+              </Text>
+            )}
+          </View>
+        )}
 
         <View style={styles.tableHead}>
           <Text style={[styles.colDesc, { fontFamily: "Helvetica-Bold", fontSize: 8 }]}>

@@ -33,6 +33,21 @@ bun run build
 bun start
 ```
 
+## Booking Quote Emails
+
+The `/booking` form posts to `/api/enquiry`. That route sends Anselm an editable quote-builder link; opening the link lets you revise the quote and download a client-ready PDF.
+
+Create environment variables from `.env.example`:
+
+```bash
+RESEND_API_KEY=...
+ADMIN_EMAIL=anselmpius@gmail.com
+RESEND_FROM_EMAIL="Anselm Long Bookings <bookings@anselmlong.com>"
+NEXT_PUBLIC_URL=https://photos.anselmlong.com
+```
+
+For production email delivery, `RESEND_FROM_EMAIL` should use a sender on a domain verified in Resend. If Resend is missing or fails and `TELEGRAM_BOT_TOKEN` plus `TELEGRAM_CHAT_ID` are configured, the enquiry falls back to a Telegram notification with the same editable quote link.
+
 ## Adding Photos
 
 ### Method 1: Edit the data file (recommended)
