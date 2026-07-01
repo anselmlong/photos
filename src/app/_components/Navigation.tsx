@@ -43,6 +43,16 @@ export function Navigation({ variant = "solid" }: NavigationProps) {
               anselmlong.com ↗
             </a>
 
+            <Link
+              href="/booking"
+              className={cn(
+                "text-sm transition-colors",
+                variant === "overlay" ? "text-white/70 hover:text-white" : "text-foreground-muted hover:text-foreground"
+              )}
+            >
+              Book a session
+            </Link>
+
             <a
               href="mailto:anselmpius@gmail.com"
               className={cn(
