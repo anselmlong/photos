@@ -11,7 +11,8 @@
     "optimize:images": "node scripts/optimize-images.mjs",
     "optimize:videos": "node scripts/optimize-videos.mjs",
     "optimize:media": "node scripts/generate-media.mjs",
-    "optimize": "bun run optimize:images && bun run optimize:videos && bun run optimize:media"
+    "optimize": "bun run optimize:images && bun run optimize:videos && bun run optimize:media",
+    "sync:drive": "node scripts/sync-drive-images.mjs"
   },
   "dependencies": {
     "@gsap/react": "^2.1.2",

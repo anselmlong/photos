@@ -1,0 +1,65 @@
+name: Sync Drive Photos
+
+on:
+  workflow_dispatch:
+  schedule:
+    - cron: "17 */6 * * *"
+
+permissions:
+  contents: write
+
+jobs:
+  sync:
+    runs-on: ubuntu-latest
+    env:
+      GOOGLE_DRIVE_API_KEY: ${{ secrets.GOOGLE_DRIVE_API_KEY }}
+      GOOGLE_DRIVE_FOLDER_ID: 1NEJ1ePEb41NWw0CAvKXlNEwigsPQ6eKN
+      DRIVE_SYNC_CATEGORY: events
+      DRIVE_SYNC_SINCE: "2026-07-01"
+
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v4
+
+      - name: Setup Bun
+        uses: oven-sh/setup-bun@v2
+        with:
+          bun-version: 1.2.0
+
+      - name: Install dependencies
+        run: bun install --frozen-lockfile
+
+      - name: Sync Drive photos
+        run: |
+          if [ -z "$GOOGLE_DRIVE_API_KEY" ]; then
+            echo "GOOGLE_DRIVE_API_KEY secret is not configured; skipping Drive sync."
+            exit 0
+          fi
+
+          bun run sync:drive
+
+      - name: Build
+        run: |
+          if [ -z "$GOOGLE_DRIVE_API_KEY" ]; then
+            echo "GOOGLE_DRIVE_API_KEY secret is not configured; skipping build."
+            exit 0
+          fi
+
+          bun run build
+
+      - name: Commit synced photos
+        run: |
+          if [ -z "$GOOGLE_DRIVE_API_KEY" ]; then
+            exit 0
+          fi
+
+          if [ -z "$(git status --porcelain)" ]; then
+            echo "No Drive photo changes to commit."
+            exit 0
+          fi
+
+          git config user.name "github-actions[bot]"
+          git config user.email "41898282+github-actions[bot]@users.noreply.github.com"
+          git add public/gallery src/lib/media.ts
+          git commit -m "Sync Google Drive photos"
+          git push

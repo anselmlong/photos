@@ -50,34 +50,77 @@ For production email delivery, `RESEND_FROM_EMAIL` should use a sender on a doma
 
 ## Adding Photos
 
-### Method 1: Edit the data file (recommended)
+The site reads gallery data from `src/lib/media.ts` and optimized image files from
+`public/gallery/`.
 
-1. Add your images to `public/photos/{category}/`
-2. Edit `src/lib/photos.ts` and add entries to the `photos` array:
+### Google Drive Sync
 
-```typescript
-{
-  src: "/photos/portraits/john-doe.jpg",
-  alt: "Portrait of John",
-  category: "portraits",
-  caption: "Studio portrait session",
-  featured: true, // optional - shows a badge
-}
+Recommended for ongoing portfolio updates:
+
+1. Share the Drive folder as "Anyone with the link can view".
+2. Enable the Google Drive API in Google Cloud.
+3. Create an API key and add it to `.env.local`:
+
+```bash
+GOOGLE_DRIVE_API_KEY=...
+GOOGLE_DRIVE_FOLDER_ID=1NEJ1ePEb41NWw0CAvKXlNEwigsPQ6eKN
+DRIVE_SYNC_CATEGORY=events
+DRIVE_SYNC_SINCE=2026-07-01
 ```
+
+4. Preview the sync:
+
+```bash
+bun run sync:drive -- --dry-run
+```
+
+Use `--since=YYYY-MM-DD` or `--newest=3` when a Drive folder contains older
+source photos that should not be imported into the current gallery.
+
+5. Download new Drive images, generate AVIF/WebP/JPG derivatives, and merge them
+   into `src/lib/media.ts`:
+
+```bash
+bun run sync:drive
+```
+
+The sync is incremental. It appends new Drive files and refreshes changed Drive
+files, while preserving existing `alt`, `category`, and `featured` values for
+photos that were already imported.
+
+### Automatic Sync
+
+`.github/workflows/sync-drive-photos.yml` can check the Drive folder every six
+hours, commit generated gallery changes, and let Vercel redeploy from GitHub.
+
+Configure the repository secret:
+
+```bash
+GOOGLE_DRIVE_API_KEY=...
+```
+
+Then trigger the workflow manually once from GitHub Actions, or wait for the
+scheduled run.
+
+### Local Raw Export
+
+For full local regeneration, place originals in `public/images/` and run:
+
+```bash
+bun run optimize:images
+bun run optimize:media
+```
+
+`public/images/` is intentionally ignored because raw camera exports are large.
 
 ### Photo Categories
 
-- `portraits` - Individual and couple portraits
-- `families` - Family sessions and gatherings
-- `events` - Celebrations and special occasions
-- `lifestyle` - Candid everyday moments
-- `kids` - Children's photography
-
-### Image Tips
-
-- Recommended: 1200-2000px on the longest edge for web
-- Supported formats: JPG, PNG, WebP
-- Use descriptive filenames for SEO
+- `portraits`
+- `weddings`
+- `events`
+- `sports`
+- `landscape`
+- `street`
 
 ## Deployment
 
