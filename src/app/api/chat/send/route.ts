@@ -1,4 +1,5 @@
 import { appendMessage, getRedis, isValidSession } from "@/lib/chat-store";
+import { publicError, readPublicJson, reservePublicRequest } from "@/lib/public-request";
 
 export const runtime = "nodejs";
 
@@ -14,9 +15,14 @@ export async function POST(req: Request) {
 
   let body: { session?: string; text?: string; name?: string };
   try {
-    body = await req.json();
-  } catch {
-    return Response.json({ error: "Bad request." }, { status: 400 });
+    await reservePublicRequest(req, "chat-send", 30);
+    const data = await readPublicJson(req);
+    if (!data || typeof data !== "object" || Array.isArray(data)) {
+      return Response.json({ error: "Bad request." }, { status: 400 });
+    }
+    body = data;
+  } catch (error) {
+    return publicError(error);
   }
 
   const session = body.session;

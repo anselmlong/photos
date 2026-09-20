@@ -158,3 +158,27 @@ Update fonts in `src/app/layout.tsx` using Google Fonts.
 ## License
 
 © Anselm Long. All rights reserved.
+# Booking privacy and public request limits
+
+Configure `UPSTASH_REDIS_REST_URL` and `UPSTASH_REDIS_REST_TOKEN` before deploying.
+Enquiries now require the same Redis store as live chat. Missing/unavailable Redis
+returns 503 before notifications or paid calls. Keep `NEXT_PUBLIC_URL` set to the
+canonical site origin. Requests with another browser Origin are rejected.
+
+Quote notifications contain a random 256-bit capability in a URL fragment.
+Names, email, phone and venue are stored only in Redis with a 24-hour TTL; the
+fragment is removed from browser history immediately and exchanged via a POST
+body. The quote response is not cacheable. Anyone with the notification link can
+view the quote within its expiry, so treat the link like a password. Reopen the
+notification to reload a quote. Existing personal-data query links are no longer
+supported; this change cannot erase links already sent or historical logs.
+
+Shared Redis counters permit five enquiries, thirty visitor chat sends and sixty
+quote resolutions per minute across all instances. The JSON body cap is 32 KiB.
+These aggregate ceilings bound notification spam without trusting spoofable IP
+headers, but a determined visitor can exhaust a bucket; authenticated/per-visitor
+quotas and chat-session ownership are follow-ups. Email/Telegram notification
+content still contains enquiry details for the intended recipient.
+
+Run the focused parser tests with `bun test src/lib/public-request.test.ts` and
+verify TypeScript with `bunx tsc --noEmit`.

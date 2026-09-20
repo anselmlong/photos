@@ -1,6 +1,8 @@
 import { NextResponse } from "next/server";
 import { Resend } from "resend";
 import { bookingSchema } from "@/lib/booking-schema";
+import { storeQuote } from "@/lib/quote-store";
+import { publicError, readPublicJson, reservePublicRequest } from "@/lib/public-request";
 
 export const runtime = "nodejs";
 
@@ -67,10 +69,12 @@ async function sendTelegramFallback(text: string) {
 
 export async function POST(req: Request) {
   let body: unknown;
+  let redis;
   try {
-    body = await req.json();
-  } catch {
-    return NextResponse.json({ error: "Invalid JSON." }, { status: 400 });
+    redis = await reservePublicRequest(req, "enquiry", 5);
+    body = await readPublicJson(req);
+  } catch (error) {
+    return publicError(error);
   }
 
   const parsed = bookingSchema.safeParse(body);
@@ -83,7 +87,12 @@ export async function POST(req: Request) {
 
   const data = parsed.data;
   const origin = getOrigin(req);
-  const quoteUrl = `${origin}/admin/quote?data=${encodeURIComponent(JSON.stringify(data))}`;
+  let quoteToken: string;
+  try { quoteToken = await storeQuote(redis, data); }
+  catch (error) { return publicError(error); }
+  // A fragment never reaches HTTP logs or referrer headers. Only the opaque
+  // capability is included in the notification; enquiry data stays in Redis.
+  const quoteUrl = `${origin}/admin/quote#token=${quoteToken}`;
   const adminEmail = process.env.ADMIN_EMAIL ?? "anselmpius@gmail.com";
   const fromEmail =
     process.env.RESEND_FROM_EMAIL ?? "Anselm Long Bookings <onboarding@resend.dev>";
@@ -178,7 +187,6 @@ export async function POST(req: Request) {
       adminEmail,
       emailError,
       telegramError: telegram.error,
-      quoteUrl,
     });
     return NextResponse.json({
       ok: true,
