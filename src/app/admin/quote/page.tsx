@@ -44,29 +44,6 @@ function estimateHours(duration: string) {
   return match ? Number(match[1]) : 1;
 }
 
-function decodeEnquiryPayload(raw: string) {
-  const candidates = [raw];
-  try {
-    const decoded = decodeURIComponent(raw);
-    if (decoded !== raw) candidates.push(decoded);
-  } catch {
-    // URLSearchParams usually returns decoded values already.
-  }
-
-  for (const candidate of candidates) {
-    try {
-      const parsed = bookingSchema.safeParse(JSON.parse(candidate));
-      if (parsed.success) {
-        return parsed.data;
-      }
-    } catch {
-      // Try the next decoding candidate.
-    }
-  }
-
-  return null;
-}
-
 function makeQuoteNumber() {
   return `Q-${new Date().toISOString().slice(0, 10).replaceAll("-", "")}`;
 }
@@ -119,26 +96,29 @@ export default function AdminQuotePage() {
   useEffect(() => {
     setQuoteNum(makeQuoteNumber());
 
-    const raw = new URLSearchParams(window.location.search).get("data");
-    if (!raw) {
-      setParseError("No enquiry data found in the URL.");
+    const token = new URLSearchParams(window.location.hash.slice(1)).get("token");
+    // Remove the capability (and any obsolete personal-data query) from history.
+    window.history.replaceState(null, "", window.location.pathname);
+    if (!token) {
+      setParseError("Open a recent quote link from your booking notification.");
       return;
     }
-
-    const decoded = decodeEnquiryPayload(raw);
-    if (!decoded) {
-      setParseError("The enquiry data in the URL could not be read.");
-      return;
-    }
-
-    setEnquiry(decoded);
-    setLineItems([
-      {
-        description: `${formatLabel(decoded.services)} coverage - ${decoded.eventTitle}`,
-        qty: estimateHours(decoded.duration),
-        rate: 0,
-      },
-    ]);
+    void (async () => {
+      try {
+        const response = await fetch("/api/quote/resolve", {
+          method: "POST", headers: { "Content-Type": "application/json" },
+          body: JSON.stringify({ token }), cache: "no-store",
+        });
+        if (!response.ok) throw new Error("Quote link is unavailable or expired.");
+        const result = await response.json() as { data?: unknown };
+        const decoded = bookingSchema.parse(result.data);
+        setEnquiry(decoded);
+        setLineItems([{ description: `${formatLabel(decoded.services)} coverage - ${decoded.eventTitle}`,
+          qty: estimateHours(decoded.duration), rate: 0 }]);
+      } catch {
+        setParseError("This quote link is unavailable or expired. Open a recent booking notification.");
+      }
+    })();
   }, []);
 
   const subtotal = useMemo(
