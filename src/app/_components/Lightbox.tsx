@@ -1,6 +1,6 @@
 "use client";
 
-import { useEffect, useCallback } from "react";
+import { useEffect, useCallback, useRef, useState } from "react";
 import { createPortal } from "react-dom";
 import { AutoVideo } from "./AutoVideo";
 import type { Photo, VideoClip } from "@/lib/media";
@@ -21,24 +21,75 @@ interface LightboxProps {
   onGoToIndex: (index: number) => void;
 }
 
+type Direction = "prev" | "next";
+
+// Swipe tuning (px, px/ms). A short flick or a long drag both count.
+const AXIS_LOCK = 10;
+const SWIPE_DISTANCE = 60;
+const DISMISS_DISTANCE = 110;
+const FLICK_VELOCITY = 0.45;
+
+const FOCUSABLE = 'button, [href], video[controls], [tabindex]:not([tabindex="-1"])';
+
+const prefersReducedMotion = () =>
+  typeof window !== "undefined" && window.matchMedia("(prefers-reduced-motion: reduce)").matches;
+
 export function Lightbox({
   items,
   currentIndex,
   isOpen,
   onClose,
   onNavigate,
-  onGoToIndex,
 }: LightboxProps) {
   const current = items[currentIndex];
+  const dialogRef = useRef<HTMLDivElement>(null);
+  const stageRef = useRef<HTMLDivElement>(null);
+  const closeRef = useRef<HTMLButtonElement>(null);
+  // Which side the next item slides in from; null = just opened.
+  const [enter, setEnter] = useState<Direction | null>(null);
+
+  const go = useCallback(
+    (direction: Direction) => {
+      if (items.length < 2) return;
+      setEnter(direction);
+      onNavigate(direction);
+    },
+    [items.length, onNavigate]
+  );
+
+  // Forget the slide direction so the next open scales in rather than slides.
+  const close = useCallback(() => {
+    setEnter(null);
+    onClose();
+  }, [onClose]);
 
   const handleKeyDown = useCallback(
     (e: KeyboardEvent) => {
       if (!isOpen) return;
-      if (e.key === "Escape") onClose();
-      if (e.key === "ArrowLeft") onNavigate("prev");
-      if (e.key === "ArrowRight") onNavigate("next");
+      if (e.key === "Escape") close();
+      // A focused video uses the arrows to seek, so leave them alone there.
+      const onVideo = e.target instanceof HTMLVideoElement;
+      if (e.key === "ArrowLeft" && !onVideo) go("prev");
+      if (e.key === "ArrowRight" && !onVideo) go("next");
+
+      // Keep Tab inside the dialog while it is open.
+      if (e.key === "Tab" && dialogRef.current) {
+        const focusable = Array.from(dialogRef.current.querySelectorAll<HTMLElement>(FOCUSABLE));
+        if (focusable.length === 0) return;
+        const first = focusable[0];
+        const last = focusable[focusable.length - 1];
+        const active = document.activeElement;
+        const inside = active instanceof Node && dialogRef.current.contains(active);
+        if (e.shiftKey && (active === first || !inside)) {
+          e.preventDefault();
+          last.focus();
+        } else if (!e.shiftKey && (active === last || !inside)) {
+          e.preventDefault();
+          first.focus();
+        }
+      }
     },
-    [isOpen, onClose, onNavigate]
+    [isOpen, close, go]
   );
 
   useEffect(() => {
@@ -53,16 +104,138 @@ export function Lightbox({
     };
   }, [isOpen]);
 
+  // Move focus into the dialog on open and hand it back to the tile on close.
+  useEffect(() => {
+    if (!isOpen) return;
+    const opener = document.activeElement instanceof HTMLElement ? document.activeElement : null;
+    closeRef.current?.focus({ preventScroll: true });
+    return () => opener?.focus({ preventScroll: true });
+  }, [isOpen]);
+
+  // Swipes own one-finger drags, but once the visitor pinch-zooms in,
+  // give panning back to the browser so they can look around the frame.
+  useEffect(() => {
+    const vv = window.visualViewport;
+    const dialog = dialogRef.current;
+    if (!isOpen || !vv || !dialog) return;
+    const sync = () => {
+      dialog.style.touchAction = vv.scale > 1.01 ? "auto" : "pinch-zoom";
+    };
+    sync();
+    vv.addEventListener("resize", sync);
+    return () => vv.removeEventListener("resize", sync);
+  }, [isOpen]);
+
+  // ---- touch swipe: left/right to browse, down to dismiss ----
+  const drag = useRef<{
+    id: number;
+    x: number;
+    y: number;
+    t: number;
+    axis: "x" | "y" | null;
+    follow: boolean;
+  } | null>(null);
+  const dragged = useRef(false);
+
+  const setStage = (transform: string, opacity = 1, animate = false) => {
+    const stage = stageRef.current;
+    if (!stage) return;
+    stage.style.transition = animate ? "transform 0.3s cubic-bezier(0.2, 0.8, 0.2, 1), opacity 0.3s ease-out" : "none";
+    stage.style.transform = transform;
+    stage.style.opacity = String(opacity);
+  };
+
+  const onPointerDown = (e: React.PointerEvent) => {
+    if (!drag.current) dragged.current = false;
+    if (e.pointerType === "mouse") return;
+    if (drag.current) {
+      // A second finger means a pinch, not a swipe.
+      drag.current = null;
+      setStage("", 1, true);
+      return;
+    }
+    if (window.visualViewport && window.visualViewport.scale > 1.01) return;
+    // Native video controls keep their own drags (scrubbing, volume).
+    if ((e.target as Element).closest("video")) return;
+    drag.current = { id: e.pointerId, x: e.clientX, y: e.clientY, t: e.timeStamp, axis: null, follow: !prefersReducedMotion() };
+  };
+
+  const onPointerMove = (e: React.PointerEvent) => {
+    const d = drag.current;
+    if (!d || d.id !== e.pointerId) return;
+    const dx = e.clientX - d.x;
+    const dy = e.clientY - d.y;
+    if (!d.axis) {
+      if (Math.max(Math.abs(dx), Math.abs(dy)) < AXIS_LOCK) return;
+      d.axis = Math.abs(dx) > Math.abs(dy) ? "x" : "y";
+      dragged.current = true;
+    }
+    if (!d.follow) return;
+    if (d.axis === "x") {
+      // Rubber-band when there is nowhere to go.
+      setStage(`translate3d(${items.length > 1 ? dx : dx * 0.25}px, 0, 0)`);
+    } else if (dy > 0) {
+      setStage(`translate3d(0, ${dy}px, 0) scale(${1 - Math.min(dy / 2000, 0.08)})`, 1 - Math.min(dy / 500, 0.6));
+    }
+  };
+
+  const onPointerEnd = (e: React.PointerEvent) => {
+    const d = drag.current;
+    if (!d || d.id !== e.pointerId) return;
+    drag.current = null;
+    const dx = e.clientX - d.x;
+    const dy = e.clientY - d.y;
+    const elapsed = Math.max(e.timeStamp - d.t, 1);
+    const cancelled = e.type === "pointercancel";
+
+    if (!cancelled && d.axis === "x" && items.length > 1 &&
+        (Math.abs(dx) > SWIPE_DISTANCE || Math.abs(dx) / elapsed > FLICK_VELOCITY)) {
+      setStage("");
+      go(dx < 0 ? "next" : "prev");
+      return;
+    }
+    if (!cancelled && d.axis === "y" && dy > 0 &&
+        (dy > DISMISS_DISTANCE || dy / elapsed > FLICK_VELOCITY)) {
+      close();
+      return;
+    }
+    setStage("", 1, d.follow);
+  };
+
   if (!isOpen || !current) return null;
+
+  const neighbours = items.length > 1
+    ? [items[(currentIndex + 1) % items.length], items[(currentIndex - 1 + items.length) % items.length]]
+    : [];
+  const label = current.kind === "photo" ? current.alt : current.title;
+  const enterClass = enter === "next" ? "animate-slideInNext" : enter === "prev" ? "animate-slideInPrev" : "animate-scaleIn";
+  const control = "rounded-full outline-none transition-colors focus-visible:ring-2 focus-visible:ring-white/80";
 
   const content = (
     <div
+      ref={dialogRef}
+      role="dialog"
+      aria-modal="true"
+      aria-label="Gallery viewer"
       className="fixed inset-0 z-[100] flex items-center justify-center bg-black/95 backdrop-blur-sm animate-fadeIn"
-      onClick={onClose}
+      style={{ touchAction: "pinch-zoom" }}
+      onClickCapture={(e) => {
+        // A swipe can end in a synthetic click (even on the arrows); swallow it.
+        if (!dragged.current || e.detail === 0) return;
+        dragged.current = false;
+        e.stopPropagation();
+        e.preventDefault();
+      }}
+      onClick={close}
+      onPointerDown={onPointerDown}
+      onPointerMove={onPointerMove}
+      onPointerUp={onPointerEnd}
+      onPointerCancel={onPointerEnd}
     >
       <button
-        onClick={onClose}
-        className="absolute top-6 right-6 z-20 p-3 text-white/60 transition-colors hover:text-white"
+        ref={closeRef}
+        onClick={close}
+        className={`absolute top-6 right-6 z-20 p-3 text-white/60 hover:text-white ${control}`}
         aria-label="Close"
       >
         <svg className="h-7 w-7" fill="none" stroke="currentColor" strokeWidth={1.5} viewBox="0 0 24 24">
@@ -70,18 +243,21 @@ export function Lightbox({
         </svg>
       </button>
 
-      <div className="absolute top-6 left-6 z-20 text-sm font-light text-white/50">
+      <div className="absolute top-6 left-6 z-20 text-sm font-light tabular-nums text-white/50" aria-hidden="true">
         {currentIndex + 1} / {items.length}
       </div>
+      <p className="sr-only" aria-live="polite">
+        {currentIndex + 1} of {items.length}: {label}
+      </p>
 
       {items.length > 1 && (
         <>
           <button
             onClick={(e) => {
               e.stopPropagation();
-              onNavigate("prev");
+              go("prev");
             }}
-            className="absolute left-4 top-1/2 z-20 -translate-y-1/2 p-4 text-white/50 transition-colors hover:text-white md:left-8"
+            className={`absolute left-4 top-1/2 z-20 -translate-y-1/2 p-4 text-white/50 hover:text-white md:left-8 ${control}`}
             aria-label="Previous"
           >
             <svg className="h-8 w-8 md:h-10 md:w-10" fill="none" stroke="currentColor" strokeWidth={1} viewBox="0 0 24 24">
@@ -91,9 +267,9 @@ export function Lightbox({
           <button
             onClick={(e) => {
               e.stopPropagation();
-              onNavigate("next");
+              go("next");
             }}
-            className="absolute right-4 top-1/2 z-20 -translate-y-1/2 p-4 text-white/50 transition-colors hover:text-white md:right-8"
+            className={`absolute right-4 top-1/2 z-20 -translate-y-1/2 p-4 text-white/50 hover:text-white md:right-8 ${control}`}
             aria-label="Next"
           >
             <svg className="h-8 w-8 md:h-10 md:w-10" fill="none" stroke="currentColor" strokeWidth={1} viewBox="0 0 24 24">
@@ -103,31 +279,52 @@ export function Lightbox({
         </>
       )}
 
-      <div
-        className="relative flex max-h-[85vh] max-w-[92vw] flex-col items-center px-4 md:px-16"
-        onClick={(e) => e.stopPropagation()}
-      >
-        {current.kind === "photo" ? (
-          <picture>
-            <source srcSet={current.avif} type="image/avif" />
-            <source srcSet={current.webp} type="image/webp" />
-            <img
-              src={current.src}
-              alt={current.alt}
-              className="max-h-[78vh] max-w-full object-contain animate-scaleIn"
-            />
-          </picture>
-        ) : (
-          <div className="w-[min(92vw,1100px)] overflow-hidden rounded-sm animate-scaleIn">
-            <AutoVideo video={current} controls priority />
-          </div>
-        )}
+      <div ref={stageRef} className="will-change-transform">
+        <div
+          key={current.kind === "photo" ? current.slug : `video-${current.slug}`}
+          className={`relative flex max-h-[85vh] max-w-[92vw] flex-col items-center px-4 md:px-16 ${enterClass}`}
+          onClick={(e) => e.stopPropagation()}
+        >
+          {current.kind === "photo" ? (
+            <picture>
+              <source srcSet={current.avif} type="image/avif" />
+              <source srcSet={current.webp} type="image/webp" />
+              <img
+                src={current.src}
+                alt={current.alt}
+                width={current.width}
+                height={current.height}
+                draggable={false}
+                className="max-h-[78vh] w-auto max-w-full object-contain select-none"
+                style={{
+                  backgroundImage: `url(${current.blurDataURL})`,
+                  backgroundSize: "cover",
+                }}
+              />
+            </picture>
+          ) : (
+            <div className="w-[min(92vw,1100px)] overflow-hidden rounded-sm">
+              <AutoVideo video={current} controls priority />
+            </div>
+          )}
 
-        <div className="mt-6 text-center">
-          <span className="text-xs uppercase tracking-[0.2em] text-white/40">
-            {current.kind === "photo" ? current.alt : current.title}
-          </span>
+          <div className="mt-6 text-center">
+            <span className="text-xs uppercase tracking-[0.2em] text-white/60">{label}</span>
+          </div>
         </div>
+      </div>
+
+      {/* Warm the cache for the frames either side so browsing feels instant. */}
+      <div hidden aria-hidden="true">
+        {neighbours.map((n) =>
+          n.kind === "photo" ? (
+            <picture key={n.slug}>
+              <source srcSet={n.avif} type="image/avif" />
+              <source srcSet={n.webp} type="image/webp" />
+              <img src={n.src} alt="" />
+            </picture>
+          ) : null
+        )}
       </div>
     </div>
   );
