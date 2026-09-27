@@ -10,9 +10,15 @@ import { OptimizedImage } from "./_components/OptimizedImage";
 import { Lightbox, asPhotoItems, type LightboxItem } from "./_components/Lightbox";
 import { useLightbox } from "./_components/useLightbox";
 import { TelegramChat } from "./_components/TelegramChat";
+import { CategoryIndex } from "./_components/CategoryIndex";
 import { photos, videos, categories } from "@/lib/media";
 
 gsap.registerPlugin(ScrollTrigger, useGSAP);
+
+const galleries = categories
+  .map((cat) => ({ ...cat, photos: photos.filter((p) => p.category === cat.id) }))
+  .filter((g) => g.photos.length > 0);
+const galleryIndex = galleries.map((g) => ({ id: g.id, label: g.label, count: g.photos.length }));
 
 export default function Home() {
   const root = useRef<HTMLDivElement>(null);
@@ -146,12 +152,11 @@ export default function Home() {
         </div>
       </section>
 
-      {/* PHOTOS — grouped by category, full uncropped frames */}
-      {categories.map((cat) => {
-        const catPhotos = photos.filter((p) => p.category === cat.id);
-        if (catPhotos.length === 0) return null;
-        return (
-          <section key={cat.id} className="px-6 py-12 md:px-12 md:py-16">
+      {/* PHOTOS — grouped by category, full uncropped frames, with a sticky index */}
+      <div>
+        <CategoryIndex categories={galleryIndex} />
+        {galleries.map(({ photos: catPhotos, ...cat }) => (
+          <section key={cat.id} id={cat.id} className="scroll-mt-32 px-6 py-12 md:scroll-mt-36 md:px-12 md:py-16">
             <h2 className="reveal mb-8 flex items-baseline gap-3 font-serif text-3xl md:text-5xl">
               {cat.label}
               <span className="text-base text-foreground-muted">{catPhotos.length}</span>
@@ -178,8 +183,8 @@ export default function Home() {
               ))}
             </div>
           </section>
-        );
-      })}
+        ))}
+      </div>
 
       <Footer />
       <TelegramChat />
