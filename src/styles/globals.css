@@ -124,6 +124,25 @@ body::before {
   animation: scaleIn 0.4s ease-out;
 }
 
+/* Lightbox: the next frame arrives from the side it was swiped from */
+@keyframes slideInNext {
+  from { opacity: 0; transform: translateX(40px); }
+  to { opacity: 1; transform: translateX(0); }
+}
+
+@keyframes slideInPrev {
+  from { opacity: 0; transform: translateX(-40px); }
+  to { opacity: 1; transform: translateX(0); }
+}
+
+.animate-slideInNext {
+  animation: slideInNext 0.35s cubic-bezier(0.2, 0.8, 0.2, 1);
+}
+
+.animate-slideInPrev {
+  animation: slideInPrev 0.35s cubic-bezier(0.2, 0.8, 0.2, 1);
+}
+
 /* Selection */
 ::selection {
   background-color: var(--accent);
@@ -184,7 +203,12 @@ html {
 @media (prefers-reduced-motion: reduce) {
   .animate-marquee,
   .animate-bounce,
-  .animate-ping {
+  .animate-ping,
+  .animate-fadeIn,
+  .animate-fadeInUp,
+  .animate-scaleIn,
+  .animate-slideInNext,
+  .animate-slideInPrev {
     animation: none !important;
   }
   html {
