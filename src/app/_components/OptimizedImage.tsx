@@ -14,7 +14,7 @@ interface OptimizedImageProps {
 
 /**
  * Static, optimizer-free responsive image: AVIF → WebP → JPEG via <picture>,
- * with a blur-up placeholder painted behind until the full image decodes.
+ * with a softened blur-up placeholder behind it until the full image decodes.
  * Carries intrinsic width/height to eliminate layout shift.
  */
 export function OptimizedImage({ photo, className, priority }: OptimizedImageProps) {
@@ -29,29 +29,38 @@ export function OptimizedImage({ photo, className, priority }: OptimizedImagePro
   }, []);
 
   return (
-    <picture>
-      <source srcSet={photo.avif} type="image/avif" />
-      <source srcSet={photo.webp} type="image/webp" />
-      <img
-        ref={ref}
-        src={photo.src}
-        alt={photo.alt}
-        width={photo.width}
-        height={photo.height}
-        loading={priority ? "eager" : "lazy"}
-        decoding="async"
-        onLoad={() => setLoaded(true)}
+    // The placeholder lives on its own layer: painted on the <img> it would be
+    // hidden by the same opacity-0 that hides the unloaded photo.
+    <span className="relative block overflow-hidden bg-muted">
+      <span
+        aria-hidden="true"
         className={cn(
-          "transition-opacity duration-700 ease-out",
-          loaded ? "opacity-100" : "opacity-0",
-          className
+          "absolute inset-0 scale-110 bg-cover bg-center blur-xl transition-opacity duration-300",
+          loaded ? "opacity-0 delay-700" : "opacity-100"
         )}
-        style={{
-          backgroundImage: `url(${photo.blurDataURL})`,
-          backgroundSize: "cover",
-          backgroundPosition: "center",
-        }}
+        style={{ backgroundImage: `url(${photo.blurDataURL})` }}
       />
-    </picture>
+      <picture>
+        <source srcSet={photo.avif} type="image/avif" />
+        <source srcSet={photo.webp} type="image/webp" />
+        <img
+          ref={ref}
+          src={photo.src}
+          alt={photo.alt}
+          width={photo.width}
+          height={photo.height}
+          loading={priority ? "eager" : "lazy"}
+          decoding="async"
+          onLoad={() => setLoaded(true)}
+          // A failed load still reveals the frame, so the alt text isn't lost behind the blur.
+          onError={() => setLoaded(true)}
+          className={cn(
+            "relative transition-opacity duration-700 ease-out",
+            loaded ? "opacity-100" : "opacity-0",
+            className
+          )}
+        />
+      </picture>
+    </span>
   );
 }
