@@ -29,6 +29,8 @@
 
 .dark {
   /* Dark Mode - Cinematic Editorial */
+  /* Native controls (date/time pickers, select menus, scrollbars) follow the dark theme */
+  color-scheme: dark;
   --background: oklch(0.08 0.01 85);
   --foreground: oklch(0.94 0.01 85);
   --foreground-muted: oklch(0.55 0.01 85);

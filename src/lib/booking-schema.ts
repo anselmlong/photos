@@ -36,7 +36,7 @@ export const bookingSchema = z.object({
   venue: requiredText("Venue name is required"),
   venueAddress: optionalText,
 
-  services: z.enum(["photography", "videography", "both"]),
+  services: z.enum(["photography", "videography", "both"], { error: "Choose a service" }),
   duration: requiredText("Duration is required"),
   guestCount: optionalGuestCount,
   budget: optionalText,
