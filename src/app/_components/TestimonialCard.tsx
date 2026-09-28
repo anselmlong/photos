@@ -3,6 +3,7 @@ import { cn } from "@/lib/utils";
 import { Stars } from "./Stars";
 
 export function formatReviewDate(date: string) {
+  if (/^\d{4}$/.test(date)) return date;
   const d = new Date(date);
   if (Number.isNaN(d.getTime())) return "";
   return d.toLocaleDateString("en-SG", { month: "short", year: "numeric" });

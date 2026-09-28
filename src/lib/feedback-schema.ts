@@ -3,7 +3,9 @@ import { z } from "zod";
 export const SHOOT_TYPES = [
   "Portraits",
   "Graduation",
+  "Birthday",
   "Event",
+  "Corporate",
   "Wedding",
   "Family",
   "Sports",
@@ -33,7 +35,7 @@ export type Testimonial = {
   shootType: string;
   rating: number;
   message: string;
-  /** ISO date (YYYY-MM-DD or full timestamp). */
+  /** ISO timestamp, or just a year (YYYY) when only that is known. */
   date: string;
   source: "site" | "carousell";
 };
