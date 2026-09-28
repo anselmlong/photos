@@ -23,7 +23,8 @@
   
   --border: oklch(0.90 0.002 90);
   
-  --font-serif: "Playfair Display", "Georgia", "Times New Roman", serif;
+  /* next/font's variable carries the metric-matched fallback, so headings don't jump on swap */
+  --font-serif: var(--font-playfair), "Georgia", "Times New Roman", serif;
   --font-sans: system-ui, -apple-system, BlinkMacSystemFont, sans-serif;
 }
 

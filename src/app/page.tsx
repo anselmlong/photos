@@ -108,7 +108,8 @@ export default function Home() {
             <span className="block overflow-hidden">
               <span className="hero-line block">Anselm</span>
             </span>
-            <span className="block overflow-hidden">
+            {/* The mask reaches below the tight leading so it doesn't clip the italic g's tail. */}
+            <span className="-mb-[0.25em] block overflow-hidden pb-[0.25em]">
               <span className="hero-line block italic">Long</span>
             </span>
           </h1>

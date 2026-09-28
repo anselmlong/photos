@@ -1,7 +1,7 @@
 import "@/styles/globals.css";
 
 import { type Metadata } from "next";
-import { Playfair_Display, Source_Sans_3 } from "next/font/google";
+import { Playfair_Display } from "next/font/google";
 
 export const metadata: Metadata = {
   title: "Anselm Long — Photography",
@@ -14,18 +14,14 @@ export const metadata: Metadata = {
   },
 };
 
+// Headings only ever use the regular weight; the italic is the hero's "Long", which
+// the browser would otherwise fake by slanting the roman. Body text stays on system-ui.
 const playfair = Playfair_Display({
   subsets: ["latin"],
   variable: "--font-playfair",
   display: "swap",
-  weight: ["400", "500", "600"],
-});
-
-const sourceSans = Source_Sans_3({
-  subsets: ["latin"],
-  variable: "--font-source-sans",
-  display: "swap",
-  weight: ["300", "400", "500"],
+  weight: ["400"],
+  style: ["normal", "italic"],
 });
 
 const ecosystemFooterLinkStyle = {
@@ -42,7 +38,7 @@ export default function RootLayout({
   children: React.ReactNode;
 }>) {
   return (
-    <html lang="en" className={`dark ${playfair.variable} ${sourceSans.variable}`}>
+    <html lang="en" className={`dark ${playfair.variable}`}>
       <body className="bg-background text-foreground min-h-screen">
         {children}
         <div style={{ textAlign: "center", padding: "2rem 1rem 1.5rem" }}>
