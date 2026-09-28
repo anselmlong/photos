@@ -12,6 +12,7 @@ import { Lightbox, asPhotoItems, type LightboxItem } from "./_components/Lightbo
 import { useLightbox } from "./_components/useLightbox";
 import { TelegramChat } from "./_components/TelegramChat";
 import { CategoryIndex } from "./_components/CategoryIndex";
+import { FilmRail } from "./_components/FilmRail";
 import { TestimonialCard } from "./_components/TestimonialCard";
 import { photos, videos, categories } from "@/lib/media";
 import { carousellTestimonials } from "@/lib/testimonials-seed";
@@ -130,30 +131,7 @@ export default function Home() {
       </section>
 
       {/* FILMS — horizontal rail */}
-      <section className="reveal py-12 md:py-16">
-        <div className="mb-8 px-6 md:px-12">
-          <h2 className="font-serif text-3xl md:text-5xl">Films</h2>
-          <p className="mt-3 max-w-md text-foreground-muted">Motion work, in selected frames.</p>
-        </div>
-        <div className="no-scrollbar flex snap-x snap-mandatory gap-4 overflow-x-auto px-6 pb-4 md:px-12">
-          {restVideos.map((v) => {
-            const idx = videos.findIndex((x) => x.slug === v.slug);
-            return (
-              <button
-                key={v.slug}
-                onClick={() => lb.open(idx)}
-                className="group relative aspect-video w-[85vw] flex-shrink-0 snap-center overflow-hidden rounded-sm md:w-[60vw] lg:w-[44vw]"
-              >
-                <AutoVideo video={v} />
-                <div className="absolute inset-0 bg-black/20 transition-colors group-hover:bg-black/0" />
-                <span className="absolute bottom-4 left-4 font-serif text-lg text-white drop-shadow">
-                  {v.title}
-                </span>
-              </button>
-            );
-          })}
-        </div>
-      </section>
+      <FilmRail films={restVideos} onOpen={(slug) => lb.open(videos.findIndex((v) => v.slug === slug))} />
 
       {/* PHOTOS — grouped by category, full uncropped frames, with a sticky index */}
       <div>
