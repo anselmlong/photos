@@ -1,6 +1,7 @@
 "use client";
 
 import { useRef } from "react";
+import Link from "next/link";
 import { gsap } from "gsap";
 import { ScrollTrigger } from "gsap/ScrollTrigger";
 import { useGSAP } from "@gsap/react";
@@ -12,7 +13,9 @@ import { useLightbox } from "./_components/useLightbox";
 import { TelegramChat } from "./_components/TelegramChat";
 import { CategoryIndex } from "./_components/CategoryIndex";
 import { FilmRail } from "./_components/FilmRail";
+import { TestimonialCard } from "./_components/TestimonialCard";
 import { photos, videos, categories } from "@/lib/media";
+import { carousellTestimonials } from "@/lib/testimonials-seed";
 
 gsap.registerPlugin(ScrollTrigger, useGSAP);
 
@@ -164,6 +167,7 @@ export default function Home() {
         ))}
       </div>
 
+      <KindWords />
       <Footer />
       <TelegramChat />
 
@@ -176,6 +180,45 @@ export default function Home() {
         onGoToIndex={lb.goToIndex}
       />
     </div>
+  );
+}
+
+function KindWords() {
+  const picks = [...carousellTestimonials]
+    .filter((t) => t.rating === 5)
+    .sort((a, b) => b.date.localeCompare(a.date))
+    .slice(0, 3);
+
+  return (
+    <section className="reveal border-t border-border px-6 py-20 md:px-12 md:py-28">
+      <div className="mx-auto max-w-7xl">
+        <div className="mb-10 flex flex-wrap items-end justify-between gap-4">
+          <div>
+            <p className="mb-3 text-xs uppercase tracking-[0.4em] text-foreground-muted">Kind words</p>
+            <h2 className="font-serif text-3xl md:text-4xl">From people I&apos;ve shot for.</h2>
+          </div>
+          <div className="flex gap-5 text-sm">
+            <Link href="/feedback" className="border-b border-foreground/40 pb-0.5 transition-opacity hover:opacity-70">
+              Read all
+            </Link>
+            <Link href="/feedback/new" className="border-b border-foreground/40 pb-0.5 transition-opacity hover:opacity-70">
+              Leave a note
+            </Link>
+          </div>
+        </div>
+        {picks.length > 0 ? (
+          <div className="grid gap-5 md:grid-cols-3">
+            {picks.map((t) => (
+              <TestimonialCard key={t.id} testimonial={t} />
+            ))}
+          </div>
+        ) : (
+          <p className="text-sm text-foreground-muted">
+            Worked with me? <Link href="/feedback/new" className="underline underline-offset-2">I&apos;d love to hear how it went.</Link>
+          </p>
+        )}
+      </div>
+    </section>
   );
 }
 
