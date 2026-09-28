@@ -44,6 +44,16 @@ export function Navigation({ variant = "solid" }: NavigationProps) {
             </a>
 
             <Link
+              href="/feedback"
+              className={cn(
+                "text-sm transition-colors",
+                variant === "overlay" ? "text-white/70 hover:text-white" : "text-foreground-muted hover:text-foreground"
+              )}
+            >
+              Kind words
+            </Link>
+
+            <Link
               href="/booking"
               className={cn(
                 "text-sm transition-colors",
