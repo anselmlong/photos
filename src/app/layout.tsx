@@ -32,7 +32,6 @@ const ecosystemFooterLinkStyle = {
   color: "#888",
   fontSize: "0.8rem",
   textDecoration: "none",
-  opacity: 0.8,
   letterSpacing: "0.02em",
 };
 

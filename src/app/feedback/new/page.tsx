@@ -14,7 +14,7 @@ const RATING_WORDS = ["", "Not great", "Okay", "Good", "Great", "Loved it"];
 const MAX_MESSAGE = 1000;
 
 const inputClassName =
-  "w-full rounded-sm border border-border/60 bg-background/60 px-4 py-3 text-[15px] text-foreground placeholder:text-foreground-muted/50 transition-colors focus:border-foreground/40 focus:outline-none focus:ring-1 focus:ring-foreground/20";
+  "w-full rounded-sm border border-border/60 bg-background/60 px-4 py-3 text-[15px] text-foreground placeholder:text-foreground-muted/75 transition-colors focus:border-foreground/40 focus:outline-none focus:ring-1 focus:ring-foreground/20";
 
 function Step({ n, title, hint, error, children }: { n: number; title: string; hint?: string; error?: string; children: React.ReactNode }) {
   return (
@@ -116,7 +116,7 @@ export default function NewFeedbackPage() {
                     onMouseEnter={() => setHover(n)}
                     className={cn(
                       "cursor-pointer p-0.5 transition-transform duration-150 hover:scale-110 has-[:focus-visible]:rounded-sm has-[:focus-visible]:ring-1 has-[:focus-visible]:ring-foreground/40",
-                      n <= shownRating ? "text-accent" : "text-foreground-muted/40"
+                      n <= shownRating ? "text-accent" : "text-foreground-muted/70"
                     )}
                   >
                     <input type="radio" value={n} {...register("rating")} className="sr-only" aria-label={`${n} star${n > 1 ? "s" : ""}`} />
@@ -155,7 +155,7 @@ export default function NewFeedbackPage() {
               placeholder="Anselm made everyone feel relaxed, and the photos came back within a week…"
               className={cn(inputClassName, "resize-y leading-relaxed")}
             />
-            <p className={cn("mt-1 text-right text-xs", messageLength > MAX_MESSAGE * 0.9 ? "text-foreground" : "text-foreground-muted/60")}>
+            <p className={cn("mt-1 text-right text-xs", messageLength > MAX_MESSAGE * 0.9 ? "text-foreground" : "text-foreground-muted")}>
               {messageLength} / {MAX_MESSAGE}
             </p>
           </Step>

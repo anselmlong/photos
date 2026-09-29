@@ -23,8 +23,9 @@
   
   --border: oklch(0.90 0.002 90);
   
-  --font-serif: "Playfair Display", "Georgia", "Times New Roman", serif;
-  --font-sans: system-ui, -apple-system, BlinkMacSystemFont, sans-serif;
+  /* next/font exposes the self-hosted faces as --font-playfair / --font-source-sans on <html>. */
+  --font-serif: var(--font-playfair), "Georgia", "Times New Roman", serif;
+  --font-sans: var(--font-source-sans), system-ui, -apple-system, BlinkMacSystemFont, sans-serif;
 }
 
 .dark {
@@ -33,7 +34,8 @@
   color-scheme: dark;
   --background: oklch(0.08 0.01 85);
   --foreground: oklch(0.94 0.01 85);
-  --foreground-muted: oklch(0.55 0.01 85);
+  /* 0.62 keeps secondary text above 4.5:1 on the near-black background */
+  --foreground-muted: oklch(0.62 0.01 85);
   
   --card: oklch(0.12 0.01 85);
   --card-foreground: oklch(0.94 0.01 85);
@@ -45,7 +47,7 @@
   --accent-foreground: oklch(0.94 0.01 85);
   
   --muted: oklch(0.16 0.01 85);
-  --muted-foreground: oklch(0.50 0.01 85);
+  --muted-foreground: oklch(0.58 0.01 85);
   
   --border: oklch(0.20 0.01 85);
 }
@@ -201,9 +203,31 @@ html {
   animation: marquee 30s linear infinite;
 }
 
+/* Hero scroll cue: a hairline that draws down and drains away, on a slow loop */
+@keyframes scrollCue {
+  0% { transform: translateY(-100%); }
+  55% { transform: translateY(0); }
+  100% { transform: translateY(100%); }
+}
+.scroll-cue {
+  animation: scrollCue 2.4s cubic-bezier(0.65, 0, 0.35, 1) infinite;
+}
+
+/* Chat launcher: announce itself three times, then rest */
+@keyframes chatPing {
+  0% { transform: scale(1); opacity: 0.7; }
+  75%, 100% { transform: scale(1.8); opacity: 0; }
+}
+.chat-ping {
+  opacity: 0;
+  animation: chatPing 1.6s cubic-bezier(0, 0, 0.2, 1) 1.5s 3 backwards;
+}
+
 /* Reduced motion: stop ambient animation */
 @media (prefers-reduced-motion: reduce) {
   .animate-marquee,
+  .scroll-cue,
+  .chat-ping,
   .animate-bounce,
   .animate-ping,
   .animate-fadeIn,
