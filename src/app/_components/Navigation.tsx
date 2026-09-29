@@ -36,7 +36,7 @@ export function Navigation({ variant = "solid" }: NavigationProps) {
               target="_blank"
               rel="noopener noreferrer"
               className={cn(
-                "hidden text-sm transition-colors sm:block",
+                "-my-2 hidden py-3 text-sm transition-colors sm:block",
                 variant === "overlay" ? "text-white/70 hover:text-white" : "text-foreground-muted hover:text-foreground"
               )}
             >
@@ -46,7 +46,7 @@ export function Navigation({ variant = "solid" }: NavigationProps) {
             <Link
               href="/feedback"
               className={cn(
-                "text-sm transition-colors",
+                "-my-2 py-3 text-sm transition-colors",
                 variant === "overlay" ? "text-white/70 hover:text-white" : "text-foreground-muted hover:text-foreground"
               )}
             >
@@ -56,7 +56,7 @@ export function Navigation({ variant = "solid" }: NavigationProps) {
             <Link
               href="/booking"
               className={cn(
-                "text-sm transition-colors",
+                "-my-2 py-3 text-sm transition-colors",
                 variant === "overlay" ? "text-white/70 hover:text-white" : "text-foreground-muted hover:text-foreground"
               )}
             >
