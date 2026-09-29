@@ -228,7 +228,6 @@ html {
   .animate-marquee,
   .scroll-cue,
   .chat-ping,
-  .animate-bounce,
   .animate-ping,
   .animate-fadeIn,
   .animate-fadeInUp,
@@ -257,11 +256,12 @@ html {
   --check-blur-dur: 500ms;
   --check-blur-from: 10px;
   --check-path-dur: 550ms;
-  --check-path-delay: 80ms;
+  /* The check draws as the shutter reopens (see .shutter-blade below). */
+  --check-path-delay: 700ms;
   --check-ease-out: cubic-bezier(0.22, 1, 0.36, 1);
   --check-ease-opacity: cubic-bezier(0.22, 1, 0.36, 1);
   --check-ease-rotate: cubic-bezier(0.22, 1, 0.36, 1);
-  --check-ease-bob: cubic-bezier(0.34, 1.35, 0.64, 1);
+  --check-ease-bob: cubic-bezier(0.22, 1, 0.36, 1);
   --check-ease-path: cubic-bezier(0.22, 1, 0.36, 1);
 }
 .t-success-check {
@@ -299,7 +299,32 @@ html {
   to   { translate: 0 0; }
 }
 @keyframes t-check-draw { to { stroke-dashoffset: 0; } }
+
+/* Shutter: the iris blades slide in to close the lens, hold a beat, and open
+   again, turning a few degrees as a real aperture does. Played once. */
+.t-success-check .shutter-iris {
+  transform-box: view-box;
+  transform-origin: 24px 24px;
+}
+.t-success-check[data-state="in"] .shutter-iris {
+  animation: shutter-twist 520ms cubic-bezier(0.65, 0, 0.35, 1) 320ms both;
+}
+.t-success-check[data-state="in"] .shutter-blade {
+  animation: shutter-blink 520ms cubic-bezier(0.65, 0, 0.35, 1) 320ms both;
+}
+@keyframes shutter-blink {
+  0% { transform: translateX(0); }
+  38%, 50% { transform: translateX(-21px); }
+  100% { transform: translateX(0); }
+}
+@keyframes shutter-twist {
+  0% { transform: rotate(0deg); }
+  38%, 50% { transform: rotate(-18deg); }
+  100% { transform: rotate(0deg); }
+}
 @media (prefers-reduced-motion: reduce) {
   .t-success-check { animation: none !important; opacity: 1; }
   .t-success-check svg path { animation: none !important; stroke-dashoffset: 0 !important; }
+  .t-success-check .shutter-iris,
+  .t-success-check .shutter-blade { animation: none !important; }
 }
