@@ -95,7 +95,10 @@ const inputClassName =
 function Select(props: ComponentProps<"select">) {
   return (
     <div className="relative">
-      <select {...props} className={`${inputClassName} appearance-none pr-10`} />
+      <select
+        {...props}
+        className={`${inputClassName} appearance-none pr-10 [&:has(option[value='']:checked)]:text-foreground-muted/75`}
+      />
       <Chevron className="pointer-events-none absolute top-1/2 right-3.5 h-4 w-4 -translate-y-1/2 text-foreground-muted" />
     </div>
   );
@@ -368,7 +371,7 @@ export default function BookingPage() {
           <button
             type="submit"
             disabled={isSubmitting}
-            className="mt-2 inline-flex justify-center rounded-full border border-foreground/20 px-8 py-3 text-sm transition-all duration-300 hover:bg-foreground hover:text-background focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-foreground/60 disabled:cursor-not-allowed disabled:opacity-50"
+            className="mt-2 inline-flex justify-center rounded-full bg-foreground px-8 py-3 text-sm text-background transition-opacity hover:opacity-85 focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-foreground/60 disabled:cursor-not-allowed disabled:opacity-50"
           >
             {isSubmitting ? "Sending..." : "Send enquiry"}
           </button>

@@ -14,7 +14,7 @@ const RATING_WORDS = ["", "Not great", "Okay", "Good", "Great", "Loved it"];
 const MAX_MESSAGE = 1000;
 
 const inputClassName =
-  "w-full rounded-sm border border-border/60 bg-background/60 px-4 py-3 text-[15px] text-foreground placeholder:text-foreground-muted/75 transition-colors focus:border-foreground/40 focus:outline-none focus:ring-1 focus:ring-foreground/20";
+  "w-full rounded-sm border border-border/60 bg-background/60 px-4 py-3 text-[15px] text-foreground placeholder:text-foreground-muted/75 transition-colors focus:border-foreground/50 focus:outline-none focus:ring-2 focus:ring-foreground/20";
 
 function Step({ n, title, hint, error, children }: { n: number; title: string; hint?: string; error?: string; children: React.ReactNode }) {
   return (
@@ -115,7 +115,7 @@ export default function NewFeedbackPage() {
                     key={n}
                     onMouseEnter={() => setHover(n)}
                     className={cn(
-                      "cursor-pointer p-0.5 transition-transform duration-150 hover:scale-110 has-[:focus-visible]:rounded-sm has-[:focus-visible]:ring-1 has-[:focus-visible]:ring-foreground/40",
+                      "cursor-pointer p-0.5 transition-transform duration-150 hover:scale-110 has-[:focus-visible]:rounded-sm has-[:focus-visible]:ring-2 has-[:focus-visible]:ring-foreground/50",
                       n <= shownRating ? "text-accent" : "text-foreground-muted/70"
                     )}
                   >
@@ -134,7 +134,7 @@ export default function NewFeedbackPage() {
                 <label
                   key={type}
                   className={cn(
-                    "cursor-pointer rounded-full border px-4 py-1.5 text-sm transition-colors has-[:focus-visible]:ring-1 has-[:focus-visible]:ring-foreground/40",
+                    "cursor-pointer rounded-full border px-4 py-1.5 text-sm transition-colors has-[:focus-visible]:ring-2 has-[:focus-visible]:ring-foreground/50",
                     shootType === type
                       ? "border-foreground bg-foreground text-background"
                       : "border-border text-foreground-muted hover:border-foreground/40 hover:text-foreground"
@@ -172,7 +172,7 @@ export default function NewFeedbackPage() {
             <button
               type="submit"
               disabled={isSubmitting}
-              className="inline-flex justify-center rounded-full bg-foreground px-8 py-3 text-sm text-background transition-opacity hover:opacity-85 disabled:cursor-not-allowed disabled:opacity-50"
+              className="inline-flex justify-center rounded-full bg-foreground px-8 py-3 text-sm text-background transition-opacity hover:opacity-85 focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-foreground/60 disabled:cursor-not-allowed disabled:opacity-50"
             >
               {isSubmitting ? "Sending…" : "Send note"}
             </button>

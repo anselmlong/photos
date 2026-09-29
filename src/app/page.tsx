@@ -142,7 +142,7 @@ export default function Home() {
           <section key={cat.id} id={cat.id} className="scroll-mt-32 px-6 py-12 md:scroll-mt-36 md:px-12 md:py-16">
             <h2 className="reveal mb-8 flex items-baseline gap-3 font-serif text-3xl md:text-5xl">
               {cat.label}
-              <span className="text-base text-foreground-muted">{catPhotos.length}</span>
+              <span className="font-sans text-base tabular-nums text-foreground-muted">{catPhotos.length}</span>
             </h2>
             <div className="columns-1 gap-3 sm:columns-2 lg:columns-3 [&>*]:mb-3">
               {catPhotos.map((p) => (
