@@ -2,6 +2,7 @@
 
 import { useEffect, useState } from "react";
 import Link from "next/link";
+import { usePathname } from "next/navigation";
 import { cn } from "@/lib/utils";
 
 interface NavigationProps {
@@ -13,7 +14,7 @@ interface NavigationProps {
 }
 
 const focusRing =
-  "rounded-sm focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-4 focus-visible:outline-accent";
+  "rounded-sm focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-accent";
 
 /** True once the page has scrolled far enough that the bar is no longer over the full-height hero. */
 function usePastHero(enabled: boolean) {
@@ -46,6 +47,21 @@ function usePastHero(enabled: boolean) {
 export function Navigation({ variant = "solid" }: NavigationProps) {
   const pastHero = usePastHero(variant === "overlay");
   const overlay = variant === "overlay" && !pastHero;
+  const pathname = usePathname();
+  // The page you're on reads as lit, not as another option.
+  const link = (href: string) => {
+    const current = pathname === href || pathname.startsWith(`${href}/`);
+    return {
+      "aria-current": current ? ("page" as const) : undefined,
+      className: cn(
+        "-my-2 py-3 text-sm transition-colors",
+        focusRing,
+        current
+          ? overlay ? "text-white" : "text-foreground"
+          : overlay ? "text-white/70 hover:text-white" : "text-foreground-muted hover:text-foreground"
+      ),
+    };
+  };
 
   return (
     <nav
@@ -75,7 +91,7 @@ export function Navigation({ variant = "solid" }: NavigationProps) {
               target="_blank"
               rel="noopener noreferrer"
               className={cn(
-                "hidden text-sm transition-colors sm:block",
+                "-my-2 hidden py-3 text-sm transition-colors sm:block",
                 focusRing,
                 overlay ? "text-white/70 hover:text-white" : "text-foreground-muted hover:text-foreground"
               )}
@@ -83,25 +99,11 @@ export function Navigation({ variant = "solid" }: NavigationProps) {
               anselmlong.com ↗
             </a>
 
-            <Link
-              href="/feedback"
-              className={cn(
-                "text-sm transition-colors",
-                focusRing,
-                overlay ? "text-white/70 hover:text-white" : "text-foreground-muted hover:text-foreground"
-              )}
-            >
+            <Link href="/feedback" {...link("/feedback")}>
               Kind words
             </Link>
 
-            <Link
-              href="/booking"
-              className={cn(
-                "text-sm transition-colors",
-                focusRing,
-                overlay ? "text-white/70 hover:text-white" : "text-foreground-muted hover:text-foreground"
-              )}
-            >
+            <Link href="/booking" {...link("/booking")}>
               {/* "Book a session" won't share a 360px row with the name, so phones get the short form. */}
               Book<span className="hidden sm:inline"> a session</span>
             </Link>
@@ -109,8 +111,7 @@ export function Navigation({ variant = "solid" }: NavigationProps) {
             <a
               href="mailto:anselmpius@gmail.com"
               className={cn(
-                "hidden items-center rounded-full border px-4 py-2 text-sm transition-all duration-300 md:inline-flex",
-                "focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-accent",
+                "hidden items-center rounded-full border px-4 py-2 text-sm transition-all duration-300 focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-accent md:inline-flex",
                 overlay
                   ? "border-white/30 hover:bg-white hover:text-black"
                   : "border-foreground/20 hover:bg-foreground hover:text-background"

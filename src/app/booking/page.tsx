@@ -62,7 +62,7 @@ function Field({
       <label htmlFor={htmlFor} className="text-sm text-foreground-muted">
         {label}
         {REQUIRED.has(htmlFor) && (
-          <span aria-hidden className="ml-0.5 text-foreground/45">
+          <span aria-hidden className="ml-0.5 text-accent">
             *
           </span>
         )}
@@ -89,13 +89,16 @@ function ChoiceGroup({ legend, error, children }: { legend: string; error?: stri
 }
 
 const inputClassName =
-  "w-full rounded-sm border border-border/60 bg-background/60 px-4 py-2.5 text-sm text-foreground placeholder:text-foreground-muted/50 transition-colors focus:border-foreground/50 focus:outline-none focus:ring-2 focus:ring-foreground/20 aria-[invalid=true]:border-red-400/70";
+  "w-full rounded-sm border border-border/60 bg-background/60 px-4 py-2.5 text-sm text-foreground placeholder:text-foreground-muted/75 transition-colors focus:border-foreground/50 focus:outline-none focus:ring-2 focus:ring-foreground/20 aria-[invalid=true]:border-red-400/70";
 
 /** appearance-none drops the native arrow, so draw one back in. */
 function Select(props: ComponentProps<"select">) {
   return (
     <div className="relative">
-      <select {...props} className={`${inputClassName} appearance-none pr-10`} />
+      <select
+        {...props}
+        className={`${inputClassName} appearance-none pr-10 [&:has(option[value='']:checked)]:text-foreground-muted/75`}
+      />
       <Chevron className="pointer-events-none absolute top-1/2 right-3.5 h-4 w-4 -translate-y-1/2 text-foreground-muted" />
     </div>
   );
@@ -154,7 +157,7 @@ export default function BookingPage() {
         <h1 className="mb-2 font-serif text-3xl md:text-4xl">Book a session</h1>
         <p className="mb-10 text-sm leading-relaxed text-foreground-muted">
           Share the details you have and Anselm will reply with a tailored quote. Fields marked{" "}
-          <span className="text-foreground/45">*</span> are required.
+          <span className="text-accent">*</span> are required.
         </p>
 
         <form onSubmit={handleSubmit(onSubmit)} noValidate className="flex flex-col gap-4">
@@ -368,7 +371,7 @@ export default function BookingPage() {
           <button
             type="submit"
             disabled={isSubmitting}
-            className="mt-2 inline-flex justify-center rounded-full border border-foreground/20 px-8 py-3 text-sm transition-all duration-300 hover:bg-foreground hover:text-background focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-foreground/60 disabled:cursor-not-allowed disabled:opacity-50"
+            className="mt-2 inline-flex justify-center rounded-full bg-foreground px-8 py-3 text-sm text-background transition-opacity hover:opacity-85 focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-foreground/60 disabled:cursor-not-allowed disabled:opacity-50"
           >
             {isSubmitting ? "Sending..." : "Send enquiry"}
           </button>

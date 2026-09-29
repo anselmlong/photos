@@ -2,10 +2,13 @@
 
 import { useEffect, useRef } from "react";
 
-/** transitions-dev success check: fades/rotates/blurs/Y-bobs in a checkmark
- * and draws its stroke. The wrapper is mounted with data-state="in" so the
- * appear animation runs on load. Stroke length is measured at runtime so the
- * draw always covers the path exactly regardless of viewBox. */
+// Six blades; each is a slab whose inner edge sits on a hexagon around the lens.
+const BLADES = [0, 60, 120, 180, 240, 300];
+
+/** transitions-dev success check, framed as a lens: the iris snaps shut and
+ * reopens once, like a shutter firing, then the check draws inside it. The
+ * wrapper is mounted with data-state="in" so the sequence runs on load. Stroke
+ * length is measured at runtime so the draw always covers the path exactly. */
 export function SuccessCheck() {
   const pathRef = useRef<SVGPathElement>(null);
   const wrapRef = useRef<HTMLSpanElement>(null);
@@ -27,18 +30,27 @@ export function SuccessCheck() {
       data-state="out"
       aria-hidden="true"
     >
-      <svg
-        className="h-16 w-16"
-        viewBox="0 0 48 48"
-        fill="none"
-        stroke="currentColor"
-        strokeWidth={5}
-        strokeLinecap="round"
-        strokeLinejoin="round"
-      >
+      <svg className="h-16 w-16" viewBox="0 0 48 48" fill="none">
+        <defs>
+          <clipPath id="success-lens">
+            <circle cx="24" cy="24" r="21" />
+          </clipPath>
+        </defs>
+        <g clipPath="url(#success-lens)" className="shutter-iris">
+          {BLADES.map((angle) => (
+            <g key={angle} transform={`rotate(${angle + 15} 24 24)`}>
+              <rect className="shutter-blade" x="45" y="-24" width="48" height="96" fill="currentColor" />
+            </g>
+          ))}
+        </g>
+        <circle cx="24" cy="24" r="21.5" stroke="currentColor" strokeOpacity={0.3} strokeWidth={1} />
         <path
           ref={pathRef}
-          d="M12 34 L22 22 L30 26 L36 12"
+          d="M16 24.5 L21.5 30 L32.5 18.5"
+          stroke="currentColor"
+          strokeWidth={3}
+          strokeLinecap="round"
+          strokeLinejoin="round"
         />
       </svg>
     </span>
