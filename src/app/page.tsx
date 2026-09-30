@@ -39,41 +39,43 @@ export default function Home() {
 
   useGSAP(
     () => {
-      gsap.from(".hero-line", {
-        yPercent: 120,
-        opacity: 0,
-        duration: 1.1,
-        stagger: 0.12,
-        ease: "power4.out",
-        delay: 0.2,
-      });
-
-      gsap.utils.toArray<HTMLElement>(".reveal").forEach((el) => {
-        gsap.from(el, {
-          opacity: 0,
-          y: 50,
-          duration: 1,
-          ease: "power3.out",
-          scrollTrigger: { trigger: el, start: "top 88%" },
-        });
-      });
-
-      ScrollTrigger.batch(".tile", {
-        start: "top 92%",
-        onEnter: (els) =>
-          gsap.from(els, {
-            opacity: 0,
-            y: 40,
-            scale: 0.96,
-            duration: 0.6,
-            stagger: 0.06,
-            ease: "power3.out",
-            overwrite: true,
-          }),
-      });
-
+      // Every entrance and scroll effect is motion-only; with reduced motion the
+      // content simply sits in place.
       const mm = gsap.matchMedia();
       mm.add("(prefers-reduced-motion: no-preference)", () => {
+        gsap.from(".hero-line", {
+          yPercent: 120,
+          opacity: 0,
+          duration: 1.1,
+          stagger: 0.12,
+          ease: "power4.out",
+          delay: 0.2,
+        });
+
+        gsap.utils.toArray<HTMLElement>(".reveal").forEach((el) => {
+          gsap.from(el, {
+            opacity: 0,
+            y: 50,
+            duration: 1,
+            ease: "power3.out",
+            scrollTrigger: { trigger: el, start: "top 88%" },
+          });
+        });
+
+        ScrollTrigger.batch(".tile", {
+          start: "top 92%",
+          onEnter: (els) =>
+            gsap.from(els, {
+              opacity: 0,
+              y: 40,
+              scale: 0.96,
+              duration: 0.6,
+              stagger: 0.06,
+              ease: "power3.out",
+              overwrite: true,
+            }),
+        });
+
         gsap.to(".hero-content", {
           yPercent: 30,
           opacity: 0,
@@ -108,16 +110,15 @@ export default function Home() {
             <span className="block overflow-hidden">
               <span className="hero-line block">Anselm</span>
             </span>
-            {/* The mask reaches below the tight leading so it doesn't clip the italic g's tail. */}
-            <span className="-mb-[0.25em] block overflow-hidden pb-[0.25em]">
+            {/* Padding gives the italic g's descender room inside the reveal mask. */}
+            <span className="-mb-[0.2em] block overflow-hidden pb-[0.2em]">
               <span className="hero-line block italic">Long</span>
             </span>
           </h1>
         </div>
-        <div className="absolute bottom-8 left-1/2 -translate-x-1/2 text-white/60">
-          <svg className="h-6 w-6 animate-bounce" fill="none" stroke="currentColor" strokeWidth={1} viewBox="0 0 24 24">
-            <path strokeLinecap="round" strokeLinejoin="round" d="M19.5 8.25l-7.5 7.5-7.5-7.5" />
-          </svg>
+        {/* Scroll cue: a hairline that draws downward, like film advancing. */}
+        <div aria-hidden="true" className="absolute bottom-8 left-1/2 h-12 w-px -translate-x-1/2 overflow-hidden bg-white/15">
+          <span className="scroll-cue block h-full w-full bg-white/70" />
         </div>
       </section>
 
@@ -141,21 +142,21 @@ export default function Home() {
           <section key={cat.id} id={cat.id} className="scroll-mt-32 px-6 py-12 md:scroll-mt-36 md:px-12 md:py-16">
             <h2 className="reveal mb-8 flex items-baseline gap-3 font-serif text-3xl md:text-5xl">
               {cat.label}
-              <span className="text-base text-foreground-muted">{catPhotos.length}</span>
+              <span className="font-sans text-base tabular-nums text-foreground-muted">{catPhotos.length}</span>
             </h2>
             <div className="columns-1 gap-3 sm:columns-2 lg:columns-3 [&>*]:mb-3">
               {catPhotos.map((p) => (
                 <button
                   key={p.slug}
                   onClick={() => lb.open(photoIndex(p.slug))}
-                  className="tile group relative block w-full break-inside-avoid overflow-hidden rounded-sm"
+                  className="tile group relative block w-full break-inside-avoid overflow-hidden rounded-sm focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-accent"
                 >
                   <OptimizedImage
                     photo={p}
                     className="w-full transition-transform duration-700 ease-out group-hover:scale-[1.05]"
                   />
-                  <div className="pointer-events-none absolute inset-0 bg-gradient-to-t from-black/70 via-black/0 to-transparent opacity-0 transition-opacity duration-500 group-hover:opacity-100" />
-                  <span className="pointer-events-none absolute bottom-3 left-3 flex translate-y-1 items-center gap-1.5 text-[11px] uppercase tracking-widest text-white opacity-0 transition-all duration-300 group-hover:translate-y-0 group-hover:opacity-100">
+                  <div className="pointer-events-none absolute inset-0 bg-gradient-to-t from-black/70 via-black/0 to-transparent opacity-0 transition-opacity duration-500 group-hover:opacity-100 group-focus-visible:opacity-100" />
+                  <span className="pointer-events-none absolute bottom-3 left-3 flex translate-y-1 items-center gap-1.5 text-[11px] uppercase tracking-widest text-white opacity-0 transition-all duration-300 group-hover:translate-y-0 group-hover:opacity-100 group-focus-visible:translate-y-0 group-focus-visible:opacity-100">
                     <svg className="h-3.5 w-3.5" fill="none" stroke="currentColor" strokeWidth={1.5} viewBox="0 0 24 24">
                       <path strokeLinecap="round" strokeLinejoin="round" d="M3.75 3.75v4.5m0-4.5h4.5m-4.5 0L9 9m11.25-5.25h-4.5m4.5 0v4.5m0-4.5L15 9m-6 6l-5.25 5.25m0 0v-4.5m0 4.5h4.5M15 15l5.25 5.25m0 0v-4.5m0 4.5h-4.5" />
                     </svg>

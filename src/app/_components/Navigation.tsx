@@ -1,6 +1,7 @@
 "use client";
 
 import Link from "next/link";
+import { usePathname } from "next/navigation";
 import { cn } from "@/lib/utils";
 
 interface NavigationProps {
@@ -9,6 +10,21 @@ interface NavigationProps {
 }
 
 export function Navigation({ variant = "solid" }: NavigationProps) {
+  const pathname = usePathname();
+  // The page you're on reads as lit, not as another option.
+  const link = (href: string) => {
+    const current = pathname === href || pathname.startsWith(`${href}/`);
+    return {
+      "aria-current": current ? ("page" as const) : undefined,
+      className: cn(
+        "-my-2 py-3 text-sm transition-colors",
+        current
+          ? variant === "overlay" ? "text-white" : "text-foreground"
+          : variant === "overlay" ? "text-white/70 hover:text-white" : "text-foreground-muted hover:text-foreground"
+      ),
+    };
+  };
+
   return (
     <nav
       className={cn(
@@ -36,37 +52,25 @@ export function Navigation({ variant = "solid" }: NavigationProps) {
               target="_blank"
               rel="noopener noreferrer"
               className={cn(
-                "hidden text-sm transition-colors sm:block",
+                "-my-2 hidden py-3 text-sm transition-colors sm:block",
                 variant === "overlay" ? "text-white/70 hover:text-white" : "text-foreground-muted hover:text-foreground"
               )}
             >
               anselmlong.com ↗
             </a>
 
-            <Link
-              href="/feedback"
-              className={cn(
-                "text-sm transition-colors",
-                variant === "overlay" ? "text-white/70 hover:text-white" : "text-foreground-muted hover:text-foreground"
-              )}
-            >
+            <Link href="/feedback" {...link("/feedback")}>
               Kind words
             </Link>
 
-            <Link
-              href="/booking"
-              className={cn(
-                "text-sm transition-colors",
-                variant === "overlay" ? "text-white/70 hover:text-white" : "text-foreground-muted hover:text-foreground"
-              )}
-            >
+            <Link href="/booking" {...link("/booking")}>
               Book a session
             </Link>
 
             <a
               href="mailto:anselmpius@gmail.com"
               className={cn(
-                "hidden items-center rounded-full border px-4 py-2 text-sm transition-all duration-300 md:inline-flex",
+                "hidden items-center rounded-full border px-4 py-2 text-sm transition-all duration-300 focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-accent md:inline-flex",
                 variant === "overlay"
                   ? "border-white/30 hover:bg-white hover:text-black"
                   : "border-foreground/20 hover:bg-foreground hover:text-background"

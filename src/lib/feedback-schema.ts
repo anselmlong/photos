@@ -22,8 +22,9 @@ export const feedbackSchema = z.object({
     .trim()
     .min(10, "A sentence or two, please")
     .max(1000, "Keep it under 1,000 characters"),
-  // Honeypot: a hidden field real people never fill in.
-  website: z.string().max(0).optional(),
+  // Honeypot: a hidden field real people never fill in. Accepted here so the
+  // API can give bots a quiet success instead of a revealing 422.
+  website: z.string().optional(),
 });
 
 export type FeedbackFormInput = z.input<typeof feedbackSchema>;

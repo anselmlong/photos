@@ -127,7 +127,10 @@ export function TelegramChat() {
           open ? "pointer-events-auto translate-y-0 opacity-100" : "pointer-events-none translate-y-4 opacity-0"
         )}
         style={{ height: "min(70vh, 520px)" }}
-        aria-hidden={!open}
+        role="dialog"
+        aria-label="Chat with Anselm"
+        // inert, not just aria-hidden: a closed panel must drop out of the tab order too.
+        inert={!open}
       >
         <header className="flex items-center justify-between border-b border-white/10 px-4 py-3">
           <div className="flex items-center gap-2.5">
@@ -155,7 +158,11 @@ export function TelegramChat() {
               );
             })()}
           </div>
-          <button onClick={() => setOpen(false)} className="text-white/50 hover:text-white" aria-label="Close chat">
+          <button
+            onClick={() => setOpen(false)}
+            className="-m-2 rounded-full p-2 text-white/60 transition-colors hover:text-white focus-visible:outline focus-visible:outline-2 focus-visible:outline-white/60"
+            aria-label="Close chat"
+          >
             <svg className="h-5 w-5" fill="none" stroke="currentColor" strokeWidth={1.5} viewBox="0 0 24 24">
               <path strokeLinecap="round" strokeLinejoin="round" d="M6 18L18 6M6 6l12 12" />
             </svg>
@@ -249,11 +256,13 @@ export function TelegramChat() {
 
       {/* Launcher */}
       <div className="fixed bottom-5 right-4 z-[60] md:right-6">
-        {!open && <span className="absolute inset-0 animate-ping rounded-full bg-white/30" aria-hidden />}
+        {/* A few pings to announce itself on arrival, then it stays quiet. */}
+        {!open && <span className="chat-ping absolute inset-0 rounded-full bg-white/30" aria-hidden />}
         <button
           onClick={() => setOpen((o) => !o)}
-          className="relative flex h-14 w-14 items-center justify-center rounded-full bg-white text-black shadow-2xl transition-transform duration-300 hover:scale-105 active:scale-95"
+          className="relative flex h-14 w-14 items-center justify-center rounded-full bg-white text-black shadow-2xl transition-transform duration-300 hover:scale-105 active:scale-95 focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-4 focus-visible:outline-white/70"
           aria-label={open ? "Close chat" : "Open chat"}
+          aria-expanded={open}
         >
         {open ? (
           <svg className="h-6 w-6" fill="none" stroke="currentColor" strokeWidth={1.5} viewBox="0 0 24 24">
