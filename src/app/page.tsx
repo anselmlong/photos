@@ -40,9 +40,9 @@ export default function Home() {
 
   useGSAP(
     () => {
+      // Every entrance and scroll effect is motion-only; with reduced motion the
+      // content simply sits in place.
       const mm = gsap.matchMedia();
-
-      // Entrances and parallax are decoration: with reduced motion everything is simply there.
       mm.add("(prefers-reduced-motion: no-preference)", () => {
         gsap.from(".hero-line", {
           yPercent: 120,
@@ -111,15 +111,15 @@ export default function Home() {
             <span className="block overflow-hidden">
               <span className="hero-line block">Anselm</span>
             </span>
-            <span className="block overflow-hidden">
+            {/* Padding gives the italic g's descender room inside the reveal mask. */}
+            <span className="-mb-[0.2em] block overflow-hidden pb-[0.2em]">
               <span className="hero-line block italic">Long</span>
             </span>
           </h1>
         </div>
-        <div className="absolute bottom-8 left-1/2 -translate-x-1/2 text-white/60">
-          <svg className="h-6 w-6 animate-bounce" fill="none" stroke="currentColor" strokeWidth={1} viewBox="0 0 24 24">
-            <path strokeLinecap="round" strokeLinejoin="round" d="M19.5 8.25l-7.5 7.5-7.5-7.5" />
-          </svg>
+        {/* Scroll cue: a hairline that draws downward, like film advancing. */}
+        <div aria-hidden="true" className="absolute bottom-8 left-1/2 h-12 w-px -translate-x-1/2 overflow-hidden bg-white/15">
+          <span className="scroll-cue block h-full w-full bg-white/70" />
         </div>
       </section>
 
@@ -143,7 +143,7 @@ export default function Home() {
           <section key={cat.id} id={cat.id} className="scroll-mt-32 px-6 py-12 md:scroll-mt-36 md:px-12 md:py-16">
             <h2 className="reveal mb-8 flex items-baseline gap-3 font-serif text-3xl md:text-5xl">
               {cat.label}
-              <span className="text-base text-foreground-muted">{catPhotos.length}</span>
+              <span className="font-sans text-base tabular-nums text-foreground-muted">{catPhotos.length}</span>
             </h2>
             <div className="columns-1 gap-3 sm:columns-2 lg:columns-3 [&>*]:mb-3">
               {catPhotos.map((p, i) => (
