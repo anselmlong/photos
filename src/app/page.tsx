@@ -8,7 +8,7 @@ import { useGSAP } from "@gsap/react";
 import { Navigation } from "./_components/Navigation";
 import { AutoVideo } from "./_components/AutoVideo";
 import { OptimizedImage } from "./_components/OptimizedImage";
-import { Lightbox, asPhotoItems, type LightboxItem } from "./_components/Lightbox";
+import { Lightbox, asPhotoItems, lightboxKey, type LightboxItem } from "./_components/Lightbox";
 import { useLightbox } from "./_components/useLightbox";
 import { TelegramChat } from "./_components/TelegramChat";
 import { CategoryIndex } from "./_components/CategoryIndex";
@@ -24,6 +24,8 @@ const galleries = categories
   .map((cat) => ({ ...cat, photos: photos.filter((p) => p.category === cat.id) }))
   .filter((g) => g.photos.length > 0);
 const galleryIndex = galleries.map((g) => ({ id: g.id, label: g.label, count: g.photos.length }));
+// The lightbox browses in the order the grid shows, category by category.
+const gridPhotos = galleries.flatMap((g) => g.photos);
 
 export default function Home() {
   const root = useRef<HTMLDivElement>(null);
@@ -33,10 +35,10 @@ export default function Home() {
 
   const items: LightboxItem[] = [
     ...videos.map((v) => ({ kind: "video" as const, ...v })),
-    ...asPhotoItems(photos),
+    ...asPhotoItems(gridPhotos),
   ];
   const lb = useLightbox(items);
-  const photoIndex = (slug: string) => videos.length + photos.findIndex((p) => p.slug === slug);
+  const photoIndex = (slug: string) => videos.length + gridPhotos.findIndex((p) => p.slug === slug);
 
   useGSAP(
     () => {
@@ -150,6 +152,7 @@ export default function Home() {
                 <button
                   key={p.slug}
                   type="button"
+                  data-lightbox-key={lightboxKey({ kind: "photo", ...p })}
                   onClick={() => lb.open(photoIndex(p.slug))}
                   // The file-name alts ("Anselm 0093") say nothing, so name the tile by where it sits.
                   aria-label={`Open ${cat.label.toLowerCase()} photo ${i + 1} of ${catPhotos.length}`}

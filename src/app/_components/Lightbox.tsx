@@ -31,8 +31,34 @@ const FLICK_VELOCITY = 0.45;
 
 const FOCUSABLE = 'button, [href], video[controls], [tabindex]:not([tabindex="-1"])';
 
+/** Matches the tile that opens an item, so closing can land on the frame last seen. */
+export const lightboxKey = (item: LightboxItem) =>
+  item.kind === "photo" ? item.slug : `video-${item.slug}`;
+
 const prefersReducedMotion = () =>
   typeof window !== "undefined" && window.matchMedia("(prefers-reduced-motion: reduce)").matches;
+
+/**
+ * Scroll a tile into view with its scroll margins, clear of the sticky nav.
+ * Done by hand because scrollIntoView drops the margin for a tile inside the
+ * film rail, leaving it under the nav.
+ */
+function bringIntoView(tile: HTMLElement) {
+  const behavior: ScrollBehavior = prefersReducedMotion() ? "auto" : "smooth";
+  const r = tile.getBoundingClientRect();
+  const style = getComputedStyle(tile);
+  const top = r.top - (parseFloat(style.scrollMarginTop) || 0);
+  const bottom = r.bottom + (parseFloat(style.scrollMarginBottom) || 0);
+  // Smallest move that shows it; a portrait taller than the screen keeps its top.
+  const dy = top < 0 ? top : bottom > window.innerHeight ? Math.min(bottom - window.innerHeight, top) : 0;
+  if (dy !== 0) window.scrollBy({ top: dy, behavior });
+
+  const rail = tile.parentElement;
+  if (rail && rail.scrollWidth > rail.clientWidth) {
+    const box = rail.getBoundingClientRect();
+    rail.scrollBy({ left: r.left + r.width / 2 - (box.left + box.width / 2), behavior });
+  }
+}
 
 export function Lightbox({
   items,
@@ -104,12 +130,27 @@ export function Lightbox({
     };
   }, [isOpen]);
 
-  // Move focus into the dialog on open and hand it back to the tile on close.
+  // Kept current for the close handoff below, which runs from a stale closure.
+  const currentKey = useRef<string | null>(null);
+  useEffect(() => {
+    currentKey.current = current ? lightboxKey(current) : null;
+  });
+
+  // Move focus into the dialog on open. On close, hand it to the tile of the
+  // frame last shown, so browsing ten photos in and closing leaves the visitor
+  // there rather than back at the one they opened.
   useEffect(() => {
     if (!isOpen) return;
     const opener = document.activeElement instanceof HTMLElement ? document.activeElement : null;
     closeRef.current?.focus({ preventScroll: true });
-    return () => opener?.focus({ preventScroll: true });
+    return () => {
+      const key = currentKey.current;
+      const tile = key ? document.querySelector<HTMLElement>(`[data-lightbox-key="${CSS.escape(key)}"]`) : null;
+      const target = tile ?? opener;
+      if (!target) return;
+      target.focus({ preventScroll: true });
+      if (target !== opener) bringIntoView(target);
+    };
   }, [isOpen]);
 
   // Swipes own one-finger drags, but once the visitor pinch-zooms in,
@@ -281,7 +322,7 @@ export function Lightbox({
 
       <div ref={stageRef} className="will-change-transform">
         <div
-          key={current.kind === "photo" ? current.slug : `video-${current.slug}`}
+          key={lightboxKey(current)}
           className={`relative flex max-h-[85vh] max-w-[92vw] flex-col items-center px-4 md:px-16 ${enterClass}`}
           onClick={(e) => e.stopPropagation()}
         >
