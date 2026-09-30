@@ -4,6 +4,7 @@ import { useEffect, useCallback, useRef, useState } from "react";
 import { createPortal } from "react-dom";
 import { AutoVideo } from "./AutoVideo";
 import type { Photo, VideoClip } from "@/lib/media";
+import { describePhoto } from "@/lib/photo-label";
 
 export type LightboxItem =
   | ({ kind: "photo" } & Photo)
@@ -248,7 +249,11 @@ export function Lightbox({
   const neighbours = items.length > 1
     ? [items[(currentIndex + 1) % items.length], items[(currentIndex - 1 + items.length) % items.length]]
     : [];
-  const label = current.kind === "photo" ? current.alt : current.title;
+  // Photos are named by category and place, not the file names their alts come from.
+  const { label, description, position } =
+    current.kind === "photo"
+      ? describePhoto(current, items.filter((i): i is LightboxItem & Photo => i.kind === "photo"))
+      : { label: current.title, description: current.title, position: null };
   const enterClass = enter === "next" ? "animate-slideInNext" : enter === "prev" ? "animate-slideInPrev" : "animate-scaleIn";
   const control = "rounded-full outline-none transition-colors focus-visible:ring-2 focus-visible:ring-white/80";
 
@@ -288,7 +293,8 @@ export function Lightbox({
         {currentIndex + 1} / {items.length}
       </div>
       <p className="sr-only" aria-live="polite">
-        {currentIndex + 1} of {items.length}: {label}
+        {/* A photo's description already says where it sits. */}
+        {position ? description : `${currentIndex + 1} of ${items.length}: ${description}`}
       </p>
 
       {items.length > 1 && (
@@ -332,7 +338,7 @@ export function Lightbox({
               <source srcSet={current.webp} type="image/webp" />
               <img
                 src={current.src}
-                alt={current.alt}
+                alt={description}
                 width={current.width}
                 height={current.height}
                 draggable={false}
@@ -351,6 +357,12 @@ export function Lightbox({
 
           <div className="mt-6 text-center">
             <span className="text-xs uppercase tracking-[0.2em] text-white/60">{label}</span>
+            {position && (
+              <span className="text-xs tabular-nums tracking-[0.2em] text-white/60" aria-hidden="true">
+                {" · "}
+                {position.replace(" of ", " / ")}
+              </span>
+            )}
           </div>
         </div>
       </div>

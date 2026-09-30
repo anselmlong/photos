@@ -15,6 +15,7 @@ import { CategoryIndex } from "./_components/CategoryIndex";
 import { FilmRail } from "./_components/FilmRail";
 import { TestimonialCard } from "./_components/TestimonialCard";
 import { photos, videos, categories } from "@/lib/media";
+import { describePhoto } from "@/lib/photo-label";
 import { cn } from "@/lib/utils";
 import { carousellTestimonials } from "@/lib/testimonials-seed";
 
@@ -148,14 +149,14 @@ export default function Home() {
               <span className="font-sans text-base tabular-nums text-foreground-muted">{catPhotos.length}</span>
             </h2>
             <div className="columns-1 gap-3 sm:columns-2 lg:columns-3 [&>*]:mb-3">
-              {catPhotos.map((p, i) => (
+              {catPhotos.map((p) => (
                 <button
                   key={p.slug}
                   type="button"
                   data-lightbox-key={lightboxKey({ kind: "photo", ...p })}
                   onClick={() => lb.open(photoIndex(p.slug))}
                   // The file-name alts ("Anselm 0093") say nothing, so name the tile by where it sits.
-                  aria-label={`Open ${cat.label.toLowerCase()} photo ${i + 1} of ${catPhotos.length}`}
+                  aria-label={`Open ${describePhoto(p, catPhotos).description}`}
                   className={cn(
                     "tile group relative block w-full break-inside-avoid overflow-hidden rounded-sm",
                     // Tabbing to a tile stops it below the sticky nav and category strip, not under them.
