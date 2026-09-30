@@ -13,6 +13,10 @@ interface NavigationProps {
   variant?: "solid" | "overlay";
 }
 
+// The backing crossfade and the text colours share one timing, so the bar turns over in one move
+// (and matches the "Get in Touch" pill).
+const fade = "duration-300 motion-reduce:duration-0";
+
 const focusRing =
   "rounded-sm focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-accent";
 
@@ -25,8 +29,12 @@ function usePastHero(enabled: boolean) {
     let frame = 0;
     const update = () => {
       frame = 0;
-      // The hero is 100svh; switch as the bar's lower edge reaches its bottom.
-      setPast(window.scrollY > window.innerHeight - 96);
+      // Switch as the bar's lower edge reaches the hero's bottom. Measure the hero itself:
+      // it is 100svh, and on phones innerHeight grows once the browser toolbar collapses,
+      // which would leave photos under a clear bar for a moment.
+      const hero = document.querySelector(".hero-section");
+      const heroBottom = hero ? hero.getBoundingClientRect().bottom : window.innerHeight - window.scrollY;
+      setPast(heroBottom < 96);
     };
     const onScroll = () => {
       if (!frame) frame = requestAnimationFrame(update);
@@ -55,6 +63,7 @@ export function Navigation({ variant = "solid" }: NavigationProps) {
       "aria-current": current ? ("page" as const) : undefined,
       className: cn(
         "-my-2 py-3 text-sm transition-colors",
+        variant === "overlay" && fade,
         focusRing,
         current
           ? overlay ? "text-white" : "text-foreground"
@@ -64,20 +73,33 @@ export function Navigation({ variant = "solid" }: NavigationProps) {
   };
 
   return (
-    <nav
-      className={cn(
-        "fixed top-0 left-0 right-0 z-50 border-b bg-origin-border transition-[background-color,border-color] duration-500",
-        overlay
-          ? "border-transparent bg-transparent bg-gradient-to-b from-black/40 to-transparent"
-          : "border-border/50 bg-background/80 backdrop-blur-md"
+    <nav className="fixed top-0 left-0 right-0 z-50">
+      {/* Gradients and backdrop blur can't be transitioned, so the two backings are layers that crossfade. */}
+      {variant === "overlay" && (
+        <div
+          aria-hidden
+          className={cn(
+            "pointer-events-none absolute inset-0 bg-gradient-to-b from-black/40 to-transparent transition-opacity",
+            fade,
+            overlay ? "opacity-100" : "opacity-0"
+          )}
+        />
       )}
-    >
-      <div className="mx-auto max-w-7xl px-5 sm:px-6 md:px-12">
+      <div
+        aria-hidden
+        className={cn(
+          "pointer-events-none absolute inset-0 border-b border-border/50 bg-background/80 backdrop-blur-md transition-opacity",
+          fade,
+          overlay ? "opacity-0" : "opacity-100"
+        )}
+      />
+      <div className="relative mx-auto max-w-7xl px-5 sm:px-6 md:px-12">
         <div className="flex h-16 items-center justify-between gap-4 md:h-20">
           <Link
             href="/"
             className={cn(
-              "whitespace-nowrap font-serif text-lg tracking-tight transition-opacity hover:opacity-70 sm:text-xl md:text-2xl",
+              "whitespace-nowrap font-serif text-lg tracking-tight transition-[color,opacity] hover:opacity-70 sm:text-xl md:text-2xl",
+              variant === "overlay" && fade,
               focusRing,
               overlay && "text-white"
             )}
@@ -92,6 +114,7 @@ export function Navigation({ variant = "solid" }: NavigationProps) {
               rel="noopener noreferrer"
               className={cn(
                 "-my-2 hidden py-3 text-sm transition-colors sm:block",
+                variant === "overlay" && fade,
                 focusRing,
                 overlay ? "text-white/70 hover:text-white" : "text-foreground-muted hover:text-foreground"
               )}
