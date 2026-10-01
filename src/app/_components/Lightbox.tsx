@@ -256,6 +256,10 @@ export function Lightbox({
       : { label: current.title, description: current.title, position: null };
   const enterClass = enter === "next" ? "animate-slideInNext" : enter === "prev" ? "animate-slideInPrev" : "animate-scaleIn";
   const control = "rounded-full outline-none transition-colors focus-visible:ring-2 focus-visible:ring-white/80";
+  // On phones the arrows sit in the bottom corners, under the thumb and clear of
+  // the photo; beside it they would cover its edges. Wider screens centre them.
+  const arrow = "absolute bottom-4 z-20 p-3 text-white/50 hover:text-white md:bottom-auto md:top-1/2 md:-translate-y-1/2 md:p-4";
+  const arrowIcon = "h-7 w-7 md:h-10 md:w-10";
 
   const content = (
     <div
@@ -304,10 +308,10 @@ export function Lightbox({
               e.stopPropagation();
               go("prev");
             }}
-            className={`absolute left-4 top-1/2 z-20 -translate-y-1/2 p-4 text-white/50 hover:text-white md:left-8 ${control}`}
+            className={`${arrow} left-2 md:left-8 ${control}`}
             aria-label="Previous"
           >
-            <svg className="h-8 w-8 md:h-10 md:w-10" fill="none" stroke="currentColor" strokeWidth={1} viewBox="0 0 24 24">
+            <svg className={arrowIcon} fill="none" stroke="currentColor" strokeWidth={1} viewBox="0 0 24 24">
               <path strokeLinecap="round" strokeLinejoin="round" d="M15.75 19.5L8.25 12l7.5-7.5" />
             </svg>
           </button>
@@ -316,10 +320,10 @@ export function Lightbox({
               e.stopPropagation();
               go("next");
             }}
-            className={`absolute right-4 top-1/2 z-20 -translate-y-1/2 p-4 text-white/50 hover:text-white md:right-8 ${control}`}
+            className={`${arrow} right-2 md:right-8 ${control}`}
             aria-label="Next"
           >
-            <svg className="h-8 w-8 md:h-10 md:w-10" fill="none" stroke="currentColor" strokeWidth={1} viewBox="0 0 24 24">
+            <svg className={arrowIcon} fill="none" stroke="currentColor" strokeWidth={1} viewBox="0 0 24 24">
               <path strokeLinecap="round" strokeLinejoin="round" d="M8.25 4.5l7.5 7.5-7.5 7.5" />
             </svg>
           </button>
@@ -329,7 +333,7 @@ export function Lightbox({
       <div ref={stageRef} className="will-change-transform">
         <div
           key={lightboxKey(current)}
-          className={`relative flex max-h-[85vh] max-w-[92vw] flex-col items-center px-4 md:px-16 ${enterClass}`}
+          className={`relative flex max-h-[85dvh] max-w-[92vw] flex-col items-center px-4 md:px-16 ${enterClass}`}
           onClick={(e) => e.stopPropagation()}
         >
           {current.kind === "photo" ? (
@@ -342,7 +346,7 @@ export function Lightbox({
                 width={current.width}
                 height={current.height}
                 draggable={false}
-                className="max-h-[78vh] w-auto max-w-full object-contain select-none"
+                className="max-h-[70dvh] w-auto max-w-full object-contain select-none md:max-h-[78dvh]"
                 style={{
                   backgroundImage: `url(${current.blurDataURL})`,
                   backgroundSize: "cover",
