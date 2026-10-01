@@ -13,16 +13,18 @@ interface NavigationProps {
   variant?: "solid" | "overlay";
 }
 
-// The backing crossfade and the text colours share one timing, so the bar turns over in one move
-// (and matches the "Get in Touch" pill).
-const fade = "duration-300 motion-reduce:duration-0";
-
 const focusRing =
   "rounded-sm focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-accent";
 
-/** True once the page has scrolled far enough that the bar is no longer over the full-height hero. */
+/**
+ * `past` is true once the page has scrolled far enough that the bar is no longer over the
+ * full-height hero. `settled` turns true a frame after the first reading, so a page that opens
+ * already past the hero (a reload, the back button) shows the backed bar at once instead of
+ * fading it in; only scrolling across the hero's edge crossfades.
+ */
 function usePastHero(enabled: boolean) {
   const [past, setPast] = useState(false);
+  const [settled, setSettled] = useState(false);
 
   useEffect(() => {
     if (!enabled) return;
@@ -40,21 +42,29 @@ function usePastHero(enabled: boolean) {
       if (!frame) frame = requestAnimationFrame(update);
     };
     update();
+    // Two frames: the first reading has to paint before the transition is switched on.
+    let settle = requestAnimationFrame(() => {
+      settle = requestAnimationFrame(() => setSettled(true));
+    });
     window.addEventListener("scroll", onScroll, { passive: true });
     window.addEventListener("resize", onScroll, { passive: true });
     return () => {
       cancelAnimationFrame(frame);
+      cancelAnimationFrame(settle);
       window.removeEventListener("scroll", onScroll);
       window.removeEventListener("resize", onScroll);
     };
   }, [enabled]);
 
-  return past;
+  return { past, settled };
 }
 
 export function Navigation({ variant = "solid" }: NavigationProps) {
-  const pastHero = usePastHero(variant === "overlay");
+  const { past: pastHero, settled } = usePastHero(variant === "overlay");
   const overlay = variant === "overlay" && !pastHero;
+  // The backing crossfade and the text colours share one timing, so the bar turns over in one move
+  // (and matches the "Get in Touch" pill). Until the first reading has painted, nothing animates.
+  const fade = variant === "overlay" && !settled ? "duration-0" : "duration-300 motion-reduce:duration-0";
   const pathname = usePathname();
   // The page you're on reads as lit, not as another option.
   const link = (href: string) => {
@@ -134,7 +144,8 @@ export function Navigation({ variant = "solid" }: NavigationProps) {
             <a
               href="mailto:anselmpius@gmail.com"
               className={cn(
-                "hidden items-center rounded-full border px-4 py-2 text-sm transition-all duration-300 focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-accent md:inline-flex",
+                "hidden items-center rounded-full border px-4 py-2 text-sm transition-all focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-accent md:inline-flex",
+                fade,
                 overlay
                   ? "border-white/30 hover:bg-white hover:text-black"
                   : "border-foreground/20 hover:bg-foreground hover:text-background"
