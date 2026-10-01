@@ -14,8 +14,8 @@ export const metadata: Metadata = {
   },
 };
 
-// Headings only ever use the regular weight; the italic is the hero's "Long", which
-// the browser would otherwise fake by slanting the roman.
+// Headings only ever use the regular weight; the italic is the hero's "Long" and the
+// featured note on /feedback, which the browser would otherwise fake by slanting the roman.
 const playfair = Playfair_Display({
   subsets: ["latin"],
   variable: "--font-playfair",
