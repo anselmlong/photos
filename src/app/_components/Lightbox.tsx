@@ -29,6 +29,8 @@ const AXIS_LOCK = 10;
 const SWIPE_DISTANCE = 60;
 const DISMISS_DISTANCE = 110;
 const FLICK_VELOCITY = 0.45;
+// Matches .animate-fadeOut / .animate-scaleOut in globals.css.
+const EXIT_MS = 200;
 
 const FOCUSABLE = 'button, [href], video[controls], [tabindex]:not([tabindex="-1"])';
 
@@ -74,10 +76,16 @@ export function Lightbox({
   const closeRef = useRef<HTMLButtonElement>(null);
   // Which side the next item slides in from; null = just opened.
   const [enter, setEnter] = useState<Direction | null>(null);
+  // Set while the viewer fades out; it stays mounted and swallows input until then.
+  const [leaving, setLeaving] = useState(false);
+  const leavingRef = useRef(false);
+  const exitTimer = useRef<number | undefined>(undefined);
+
+  useEffect(() => () => window.clearTimeout(exitTimer.current), []);
 
   const go = useCallback(
     (direction: Direction) => {
-      if (items.length < 2) return;
+      if (items.length < 2 || leavingRef.current) return;
       setEnter(direction);
       onNavigate(direction);
     },
@@ -85,14 +93,29 @@ export function Lightbox({
   );
 
   // Forget the slide direction so the next open scales in rather than slides.
+  // The viewer leaves the way it came in: a short fade and settle, mirrored.
   const close = useCallback(() => {
-    setEnter(null);
-    onClose();
+    if (leavingRef.current) return;
+    const finish = () => {
+      leavingRef.current = false;
+      setLeaving(false);
+      setEnter(null);
+      onClose();
+    };
+    if (prefersReducedMotion()) return finish();
+    leavingRef.current = true;
+    setLeaving(true);
+    exitTimer.current = window.setTimeout(finish, EXIT_MS);
   }, [onClose]);
 
   const handleKeyDown = useCallback(
     (e: KeyboardEvent) => {
       if (!isOpen) return;
+      if (leavingRef.current) {
+        // Nothing to browse or tab to while the viewer is on its way out.
+        if (e.key === "Tab" || e.key.startsWith("Arrow")) e.preventDefault();
+        return;
+      }
       if (e.key === "Escape") close();
       // A focused video uses the arrows to seek, so leave them alone there.
       const onVideo = e.target instanceof HTMLVideoElement;
@@ -189,7 +212,7 @@ export function Lightbox({
 
   const onPointerDown = (e: React.PointerEvent) => {
     if (!drag.current) dragged.current = false;
-    if (e.pointerType === "mouse") return;
+    if (e.pointerType === "mouse" || leavingRef.current) return;
     if (drag.current) {
       // A second finger means a pinch, not a swipe.
       drag.current = null;
@@ -238,6 +261,8 @@ export function Lightbox({
     }
     if (!cancelled && d.axis === "y" && dy > 0 &&
         (dy > DISMISS_DISTANCE || dy / elapsed > FLICK_VELOCITY)) {
+      // Let the frame carry on down the way it was thrown instead of vanishing mid-drag.
+      if (d.follow) setStage(`translate3d(0, ${dy + 160}px, 0) scale(0.9)`, 0, true);
       close();
       return;
     }
@@ -254,7 +279,9 @@ export function Lightbox({
     current.kind === "photo"
       ? describePhoto(current, items.filter((i): i is LightboxItem & Photo => i.kind === "photo"))
       : { label: current.title, description: current.title, position: null };
-  const enterClass = enter === "next" ? "animate-slideInNext" : enter === "prev" ? "animate-slideInPrev" : "animate-scaleIn";
+  const enterClass = leaving
+    ? "animate-scaleOut"
+    : enter === "next" ? "animate-slideInNext" : enter === "prev" ? "animate-slideInPrev" : "animate-scaleIn";
   const control = "rounded-full outline-none transition-colors focus-visible:ring-2 focus-visible:ring-white/80";
   // On phones the arrows sit in the bottom corners, under the thumb and clear of
   // the photo; beside it they would cover its edges. Wider screens centre them.
@@ -267,7 +294,7 @@ export function Lightbox({
       role="dialog"
       aria-modal="true"
       aria-label="Gallery viewer"
-      className="fixed inset-0 z-[100] flex items-center justify-center bg-black/95 backdrop-blur-sm animate-fadeIn"
+      className={`fixed inset-0 z-[100] flex items-center justify-center bg-black/95 backdrop-blur-sm ${leaving ? "animate-fadeOut" : "animate-fadeIn"}`}
       style={{ touchAction: "pinch-zoom" }}
       onClickCapture={(e) => {
         // A swipe can end in a synthetic click (even on the arrows); swallow it.
