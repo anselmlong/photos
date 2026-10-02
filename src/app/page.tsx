@@ -52,6 +52,19 @@ export default function Home() {
           delay: 0.2,
         });
 
+        // The name racks into focus as it rises, hunting a hair past sharp and
+        // settling back, the way a lens finds its subject.
+        gsap.set(".hero-title", { filter: "blur(14px)" });
+        gsap.to(".hero-title", {
+          delay: 0.3,
+          keyframes: [
+            { filter: "blur(0px)", duration: 1, ease: "power3.out" },
+            { filter: "blur(1.5px)", duration: 0.16, ease: "sine.inOut" },
+            { filter: "blur(0px)", duration: 0.3, ease: "sine.out" },
+          ],
+          clearProps: "filter",
+        });
+
         gsap.utils.toArray<HTMLElement>(".reveal").forEach((el) => {
           gsap.from(el, {
             opacity: 0,
@@ -113,7 +126,7 @@ export default function Home() {
               Photography &amp; Motion
             </p>
           </div>
-          <h1 className="mt-4 font-serif text-[15vw] leading-[0.9] md:text-[11vw] lg:text-[9rem]">
+          <h1 className="hero-title mt-4 font-serif text-[15vw] leading-[0.9] md:text-[11vw] lg:text-[9rem]">
             <span className="block overflow-hidden">
               <span className="hero-line block">Anselm</span>
             </span>
