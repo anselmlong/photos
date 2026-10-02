@@ -65,7 +65,8 @@ export function CategoryIndex({ categories }: CategoryIndexProps) {
       className={cn(
         "sticky top-16 z-40 border-b border-border/60 bg-background/85 backdrop-blur-md md:top-20",
         // Back the transparent overlay nav too, so photos don't slide between it and the strip.
-        "before:pointer-events-none before:absolute before:inset-x-0 before:bottom-full before:h-16 before:bg-background/85 before:backdrop-blur-md md:before:h-20"
+        // Near-opaque rather than blurred: a backdrop-filter nested inside this one has nothing to blur.
+        "before:pointer-events-none before:absolute before:inset-x-0 before:bottom-full before:h-16 before:bg-background/95 md:before:h-20"
       )}
     >
       {/* Inset + chip padding puts each label on the same edge as the section headings. */}
