@@ -241,7 +241,7 @@ function Footer() {
       >
         anselmpius@gmail.com
       </a>
-      <div className="mt-8 flex flex-wrap items-center justify-center gap-6 text-sm text-foreground-muted">
+      <div className="mt-6 flex flex-wrap items-center justify-center gap-x-6 text-sm text-foreground-muted [&>a]:py-2">
         <a href="https://instagram.com/selmshoots" target="_blank" rel="noopener noreferrer" className="transition-colors hover:text-foreground">
           Instagram
         </a>

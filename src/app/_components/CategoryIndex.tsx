@@ -68,7 +68,8 @@ export function CategoryIndex({ categories }: CategoryIndexProps) {
         "before:pointer-events-none before:absolute before:inset-x-0 before:bottom-full before:h-16 before:bg-background/85 before:backdrop-blur-md md:before:h-20"
       )}
     >
-      <div ref={rail} className="no-scrollbar flex gap-1 overflow-x-auto px-4 py-2.5 md:px-10">
+      {/* Inset + chip padding puts each label on the same edge as the section headings. */}
+      <div ref={rail} className="no-scrollbar flex gap-1 overflow-x-auto px-2.5 py-2.5 md:px-8.5">
         {categories.map((c) => {
           const current = c.id === active;
           return (
