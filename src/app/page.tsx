@@ -64,16 +64,23 @@ export default function Home() {
 
         ScrollTrigger.batch(".tile", {
           start: "top 92%",
-          onEnter: (els) =>
-            gsap.from(els, {
+          once: true,
+          onEnter: (els) => {
+            // A jump down the page (a category chip, a deep link) enters every tile it
+            // skipped in one batch; only the ones on screen animate, so the stagger
+            // never leaves the landing view blank while off-screen tiles take their turn.
+            const onScreen = (els as HTMLElement[]).filter((el) => el.getBoundingClientRect().bottom > 0);
+            if (onScreen.length === 0) return;
+            gsap.from(onScreen, {
               opacity: 0,
               y: 40,
               scale: 0.96,
               duration: 0.6,
-              stagger: 0.06,
+              stagger: { amount: Math.min(0.36, 0.06 * (onScreen.length - 1)) },
               ease: "power3.out",
               overwrite: true,
-            }),
+            });
+          },
         });
 
         gsap.to(".hero-content", {
