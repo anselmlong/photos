@@ -4,6 +4,7 @@ import { useEffect, useState } from "react";
 import Link from "next/link";
 import { usePathname } from "next/navigation";
 import { cn } from "@/lib/utils";
+import { PAST_HERO_PX } from "./past-hero";
 
 interface NavigationProps {
   /**
@@ -12,6 +13,18 @@ interface NavigationProps {
    */
   variant?: "solid" | "overlay";
 }
+
+/**
+ * Until the nav hydrates, the layout's script marks <html data-hero="past"> on a page that opened
+ * below the hero, and these give the bar its backed look straight away (see past-hero.ts).
+ */
+const preBacked = {
+  clear: "[html[data-hero=past]_&]:opacity-0",
+  backed: "[html[data-hero=past]_&]:opacity-100",
+  text: "[html[data-hero=past]_&]:text-foreground",
+  muted: "[html[data-hero=past]_&]:text-foreground-muted",
+  border: "[html[data-hero=past]_&]:border-foreground/20",
+};
 
 const focusRing =
   "rounded-sm focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-accent";
@@ -36,7 +49,7 @@ function usePastHero(enabled: boolean) {
       // which would leave photos under a clear bar for a moment.
       const hero = document.querySelector(".hero-section");
       const heroBottom = hero ? hero.getBoundingClientRect().bottom : window.innerHeight - window.scrollY;
-      setPast(heroBottom < 96);
+      setPast(heroBottom < PAST_HERO_PX);
     };
     const onScroll = () => {
       if (!frame) frame = requestAnimationFrame(update);
@@ -44,7 +57,11 @@ function usePastHero(enabled: boolean) {
     update();
     // Two frames: the first reading has to paint before the transition is switched on.
     let settle = requestAnimationFrame(() => {
-      settle = requestAnimationFrame(() => setSettled(true));
+      settle = requestAnimationFrame(() => {
+        setSettled(true);
+        // The bar now matches this reading, so the pre-hydration script can stand down.
+        document.documentElement.dataset.hero = "live";
+      });
     });
     window.addEventListener("scroll", onScroll, { passive: true });
     window.addEventListener("resize", onScroll, { passive: true });
@@ -76,8 +93,8 @@ export function Navigation({ variant = "solid" }: NavigationProps) {
         variant === "overlay" && fade,
         focusRing,
         current
-          ? overlay ? "text-white" : "text-foreground"
-          : overlay ? "text-white/70 hover:text-white" : "text-foreground-muted hover:text-foreground"
+          ? overlay ? cn("text-white", preBacked.text) : "text-foreground"
+          : overlay ? cn("text-white/70 hover:text-white", preBacked.muted) : "text-foreground-muted hover:text-foreground"
       ),
     };
   };
@@ -91,7 +108,7 @@ export function Navigation({ variant = "solid" }: NavigationProps) {
           className={cn(
             "pointer-events-none absolute inset-0 bg-gradient-to-b from-black/40 to-transparent transition-opacity",
             fade,
-            overlay ? "opacity-100" : "opacity-0"
+            overlay ? cn("opacity-100", preBacked.clear) : "opacity-0"
           )}
         />
       )}
@@ -100,7 +117,7 @@ export function Navigation({ variant = "solid" }: NavigationProps) {
         className={cn(
           "pointer-events-none absolute inset-0 border-b border-border/50 bg-background/80 backdrop-blur-md transition-opacity",
           fade,
-          overlay ? "opacity-0" : "opacity-100"
+          overlay ? cn("opacity-0", preBacked.backed) : "opacity-100"
         )}
       />
       <div className="relative mx-auto max-w-7xl px-5 sm:px-6 md:px-12">
@@ -111,7 +128,7 @@ export function Navigation({ variant = "solid" }: NavigationProps) {
               "whitespace-nowrap font-serif text-lg tracking-tight transition-[color,opacity] hover:opacity-70 sm:text-xl md:text-2xl",
               variant === "overlay" && fade,
               focusRing,
-              overlay && "text-white"
+              overlay && cn("text-white", preBacked.text)
             )}
           >
             Anselm Long
@@ -126,7 +143,7 @@ export function Navigation({ variant = "solid" }: NavigationProps) {
                 "-my-2 hidden py-3 text-sm transition-colors sm:block",
                 variant === "overlay" && fade,
                 focusRing,
-                overlay ? "text-white/70 hover:text-white" : "text-foreground-muted hover:text-foreground"
+                overlay ? cn("text-white/70 hover:text-white", preBacked.muted) : "text-foreground-muted hover:text-foreground"
               )}
             >
               anselmlong.com ↗
@@ -147,7 +164,7 @@ export function Navigation({ variant = "solid" }: NavigationProps) {
                 "hidden items-center rounded-full border px-4 py-2 text-sm transition-all focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-accent md:inline-flex",
                 fade,
                 overlay
-                  ? "border-white/30 hover:bg-white hover:text-black"
+                  ? cn("border-white/30 hover:bg-white hover:text-black", preBacked.border)
                   : "border-foreground/20 hover:bg-foreground hover:text-background"
               )}
             >
