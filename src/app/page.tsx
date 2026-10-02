@@ -52,6 +52,19 @@ export default function Home() {
           delay: 0.2,
         });
 
+        // The name racks into focus as it rises, hunting a hair past sharp and
+        // settling back, the way a lens finds its subject.
+        gsap.set(".hero-title", { filter: "blur(14px)" });
+        gsap.to(".hero-title", {
+          delay: 0.3,
+          keyframes: [
+            { filter: "blur(0px)", duration: 1, ease: "power3.out" },
+            { filter: "blur(1.5px)", duration: 0.16, ease: "sine.inOut" },
+            { filter: "blur(0px)", duration: 0.3, ease: "sine.out" },
+          ],
+          clearProps: "filter",
+        });
+
         gsap.utils.toArray<HTMLElement>(".reveal").forEach((el) => {
           gsap.from(el, {
             opacity: 0,
@@ -64,16 +77,23 @@ export default function Home() {
 
         ScrollTrigger.batch(".tile", {
           start: "top 92%",
-          onEnter: (els) =>
-            gsap.from(els, {
+          once: true,
+          onEnter: (els) => {
+            // A jump down the page (a category chip, a deep link) enters every tile it
+            // skipped in one batch; only the ones on screen animate, so the stagger
+            // never leaves the landing view blank while off-screen tiles take their turn.
+            const onScreen = (els as HTMLElement[]).filter((el) => el.getBoundingClientRect().bottom > 0);
+            if (onScreen.length === 0) return;
+            gsap.from(onScreen, {
               opacity: 0,
               y: 40,
               scale: 0.96,
               duration: 0.6,
-              stagger: 0.06,
+              stagger: { amount: Math.min(0.36, 0.06 * (onScreen.length - 1)) },
               ease: "power3.out",
               overwrite: true,
-            }),
+            });
+          },
         });
 
         gsap.to(".hero-content", {
@@ -106,7 +126,7 @@ export default function Home() {
               Photography &amp; Motion
             </p>
           </div>
-          <h1 className="mt-4 font-serif text-[15vw] leading-[0.9] md:text-[11vw] lg:text-[9rem]">
+          <h1 className="hero-title mt-4 font-serif text-[15vw] leading-[0.9] md:text-[11vw] lg:text-[9rem]">
             <span className="block overflow-hidden">
               <span className="hero-line block">Anselm</span>
             </span>
@@ -234,7 +254,7 @@ function Footer() {
       >
         anselmpius@gmail.com
       </a>
-      <div className="mt-8 flex flex-wrap items-center justify-center gap-6 text-sm text-foreground-muted">
+      <div className="mt-6 flex flex-wrap items-center justify-center gap-x-6 text-sm text-foreground-muted [&>a]:py-2">
         <a href="https://instagram.com/selmshoots" target="_blank" rel="noopener noreferrer" className="transition-colors hover:text-foreground">
           Instagram
         </a>

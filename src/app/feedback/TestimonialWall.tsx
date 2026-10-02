@@ -37,7 +37,8 @@ export function TestimonialWall({ testimonials, featuredId }: { testimonials: Te
           ))}
         </div>
       )}
-      <div key={filter} className="animate-fadeIn gap-5 space-y-5 md:columns-2 lg:columns-3">
+      {/* Bottom margins rather than space-y: a top margin would push every column but the first down. */}
+      <div key={filter} className="animate-fadeIn gap-5 md:columns-2 lg:columns-3 [&>*]:mb-5">
         {shown.map((t) => (
           <TestimonialCard key={t.id} testimonial={t} />
         ))}

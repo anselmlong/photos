@@ -14,20 +14,35 @@ const RATING_WORDS = ["", "Not great", "Okay", "Good", "Great", "Loved it"];
 const MAX_MESSAGE = 1000;
 
 const inputClassName =
-  "w-full rounded-sm border border-border/60 bg-background/60 px-4 py-3 text-[15px] text-foreground placeholder:text-foreground-muted/75 transition-colors focus:border-foreground/50 focus:outline-none focus:ring-2 focus:ring-foreground/20";
+  "w-full rounded-sm border border-border/60 bg-background/60 px-4 py-3 text-[15px] text-foreground placeholder:text-foreground-muted/75 transition-colors focus:border-foreground/50 focus:outline-none focus:ring-2 focus:ring-foreground/20 aria-[invalid=true]:border-red-400/70";
+
+/** Ids a step's control can point at: its title names it, its hint and error describe it. */
+const stepIds = (n: number) => ({ title: `step-${n}-title`, hint: `step-${n}-hint`, error: `step-${n}-error` });
+
+/** aria wiring for a single text control that sits under a Step title. */
+function stepControl(n: number, { hint, error }: { hint?: boolean; error?: string }) {
+  const ids = stepIds(n);
+  const describedBy = [hint && ids.hint, error && ids.error].filter(Boolean).join(" ");
+  return {
+    "aria-labelledby": ids.title,
+    "aria-describedby": describedBy || undefined,
+    "aria-invalid": error ? true : undefined,
+  };
+}
 
 function Step({ n, title, hint, error, children }: { n: number; title: string; hint?: string; error?: string; children: React.ReactNode }) {
+  const ids = stepIds(n);
   return (
     <fieldset className="border-t border-border/60 pt-6">
       <legend className="contents">
         <span className="flex items-baseline gap-3">
-          <span className="font-serif text-sm text-foreground-muted">0{n}</span>
-          <span className="font-serif text-xl">{title}</span>
+          <span aria-hidden="true" className="font-serif text-sm text-foreground-muted">0{n}</span>
+          <span id={ids.title} className="font-serif text-xl">{title}</span>
         </span>
       </legend>
-      {hint && <p className="mt-1 text-sm text-foreground-muted sm:pl-8">{hint}</p>}
+      {hint && <p id={ids.hint} className="mt-1 text-sm text-foreground-muted sm:pl-8">{hint}</p>}
       <div className="mt-4 sm:pl-8">{children}</div>
-      {error && <p className="mt-2 text-xs text-red-400 sm:pl-8" role="alert">{error}</p>}
+      {error && <p id={ids.error} className="mt-2 text-xs text-red-400 sm:pl-8" role="alert">{error}</p>}
     </fieldset>
   );
 }
@@ -76,7 +91,6 @@ export default function NewFeedbackPage() {
         <Navigation variant="solid" />
         <main className="flex min-h-screen flex-col items-center justify-center px-6 text-center">
           <SuccessCheck />
-          <p className="mb-4 text-xs uppercase tracking-[0.4em] text-foreground-muted">Received</p>
           <h1 className="mb-3 font-serif text-3xl md:text-4xl">Thank you, {sentName}.</h1>
           <p className="mb-8 max-w-sm text-sm leading-relaxed text-foreground-muted">
             This genuinely makes Anselm&apos;s day. Your note will appear on the kind words page once he&apos;s had a read.
@@ -150,6 +164,7 @@ export default function NewFeedbackPage() {
           <Step n={3} title="In your own words" hint="What was the day like? How did the photos land?" error={errors.message?.message}>
             <textarea
               {...register("message")}
+              {...stepControl(3, { hint: true, error: errors.message?.message })}
               rows={6}
               maxLength={MAX_MESSAGE}
               placeholder="Anselm made everyone feel relaxed, and the photos came back within a week…"
@@ -161,7 +176,7 @@ export default function NewFeedbackPage() {
           </Step>
 
           <Step n={4} title="Who's it from?" hint="Shown publicly — a first name or initials is perfect." error={errors.name?.message}>
-            <input {...register("name")} autoComplete="given-name" placeholder="Sarah T." className={inputClassName} />
+            <input {...register("name")} {...stepControl(4, { hint: true, error: errors.name?.message })} autoComplete="given-name" placeholder="Sarah T." className={inputClassName} />
           </Step>
 
           {/* Honeypot, hidden from people and assistive tech. */}
