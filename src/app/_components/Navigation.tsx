@@ -120,7 +120,8 @@ export function Navigation({ variant = "solid" }: NavigationProps) {
           overlay ? cn("opacity-0", preBacked.backed) : "opacity-100"
         )}
       />
-      <div className="relative mx-auto max-w-7xl px-5 sm:px-6 md:px-12">
+      {/* Over the full-bleed home page the bar spans edge to edge, lining up with the films and gallery. */}
+      <div className={cn("relative mx-auto px-6 md:px-12", variant === "solid" && "max-w-7xl")}>
         <div className="flex h-16 items-center justify-between gap-4 md:h-20">
           <Link
             href="/"
