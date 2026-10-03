@@ -1,5 +1,6 @@
 "use client";
 
+import { useEffect, useState } from "react";
 import Link from "next/link";
 import { usePathname } from "next/navigation";
 import { cn } from "@/lib/utils";
@@ -11,6 +12,21 @@ interface NavigationProps {
 
 export function Navigation({ variant = "solid" }: NavigationProps) {
   const pathname = usePathname();
+  // Past the hero, the overlay bar would float its links straight over body copy;
+  // it picks up the same backing as the solid bar instead.
+  const [backed, setBacked] = useState(false);
+  useEffect(() => {
+    if (variant !== "overlay") return;
+    const update = () => setBacked(window.scrollY > window.innerHeight - 96);
+    update();
+    window.addEventListener("scroll", update, { passive: true });
+    window.addEventListener("resize", update);
+    return () => {
+      window.removeEventListener("scroll", update);
+      window.removeEventListener("resize", update);
+    };
+  }, [variant]);
+
   // The page you're on reads as lit, not as another option.
   const link = (href: string) => {
     const current = pathname === href || pathname.startsWith(`${href}/`);
@@ -34,7 +50,17 @@ export function Navigation({ variant = "solid" }: NavigationProps) {
           : "bg-gradient-to-b from-black/40 to-transparent"
       )}
     >
-      <div className="mx-auto max-w-7xl px-6 md:px-12">
+      {variant === "overlay" && (
+        <div
+          aria-hidden="true"
+          className={cn(
+            "absolute inset-0 -z-10 border-b border-border/50 bg-background/85 backdrop-blur-md transition-opacity duration-500",
+            backed ? "opacity-100" : "opacity-0"
+          )}
+        />
+      )}
+      {/* Over the full-bleed home page the bar spans edge to edge, lining up with the films and gallery. */}
+      <div className={cn("mx-auto px-6 md:px-12", variant === "solid" && "max-w-7xl")}>
         <div className="flex h-16 items-center justify-between md:h-20">
           <Link
             href="/"

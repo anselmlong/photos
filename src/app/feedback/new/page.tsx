@@ -101,7 +101,7 @@ export default function NewFeedbackPage() {
         <div className="animate-fadeInUp">
           <p className="mb-4 text-xs uppercase tracking-[0.4em] text-foreground-muted">Leave a note</p>
           <h1 className="mb-3 text-balance font-serif text-3xl leading-tight md:text-5xl">Thanks for shooting with me.</h1>
-          <p className="mb-12 text-sm leading-relaxed text-foreground-muted">
+          <p className="mb-12 text-sm leading-relaxed text-pretty text-foreground-muted">
             A few words about how it went helps the next person decide — and I read every one. Takes about a minute.
           </p>
         </div>

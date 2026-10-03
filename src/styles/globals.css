@@ -147,6 +147,16 @@ body::before {
   animation: slideInPrev 0.35s cubic-bezier(0.2, 0.8, 0.2, 1);
 }
 
+/* Gallery photos develop once as they arrive: a pale, colourless print that
+   deepens into the finished frame, the way paper comes up in the tray. */
+@keyframes develop {
+  from { filter: grayscale(1) sepia(0.12) brightness(1.3) contrast(0.6); }
+  to { filter: none; }
+}
+.develop {
+  animation: develop 1.6s cubic-bezier(0.22, 1, 0.36, 1) both;
+}
+
 /* Selection */
 ::selection {
   background-color: var(--accent);
@@ -156,6 +166,19 @@ body::before {
 /* Smooth scrollbar */
 html {
   scroll-behavior: smooth;
+}
+
+/* Firefox: the same quiet thumb (Chrome keeps the ::-webkit-scrollbar styling below) */
+@supports not selector(::-webkit-scrollbar) {
+  html {
+    scrollbar-color: var(--muted-foreground) transparent;
+  }
+}
+
+/* The text caret takes the warm accent, like the selection */
+input,
+textarea {
+  caret-color: var(--accent);
 }
 
 ::-webkit-scrollbar {
@@ -233,7 +256,8 @@ html {
   .animate-fadeInUp,
   .animate-scaleIn,
   .animate-slideInNext,
-  .animate-slideInPrev {
+  .animate-slideInPrev,
+  .develop {
     animation: none !important;
   }
   html {

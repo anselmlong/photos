@@ -14,7 +14,8 @@ interface OptimizedImageProps {
 
 /**
  * Static, optimizer-free responsive image: AVIF → WebP → JPEG via <picture>,
- * with a softened blur-up placeholder behind it until the full image decodes.
+ * with a softened blur-up placeholder behind it until the full image decodes,
+ * then a one-time "develop" from a pale grey print to full colour.
  * Carries intrinsic width/height to eliminate layout shift.
  */
 export function OptimizedImage({ photo, className, priority }: OptimizedImageProps) {
@@ -56,7 +57,8 @@ export function OptimizedImage({ photo, className, priority }: OptimizedImagePro
           onError={() => setLoaded(true)}
           className={cn(
             "relative transition-opacity duration-700 ease-out",
-            loaded ? "opacity-100" : "opacity-0",
+            // Once decoded, the frame comes up like a print in the developer tray.
+            loaded ? "develop opacity-100" : "opacity-0",
             className
           )}
         />
