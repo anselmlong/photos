@@ -70,7 +70,7 @@ export default async function FeedbackPage() {
             )}
             <Link
               href="/feedback/new"
-              className="inline-flex w-fit items-center gap-2 rounded-full border border-foreground/20 px-6 py-2.5 text-sm transition-all duration-300 hover:bg-foreground hover:text-background"
+              className="inline-flex w-fit items-center gap-2 rounded-full border border-foreground/20 px-6 py-2.5 text-sm transition-all duration-300 hover:bg-foreground hover:text-background focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-accent"
             >
               Worked with Anselm? Leave a note →
             </Link>

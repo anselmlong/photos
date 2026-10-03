@@ -114,6 +114,8 @@ export function FilmRail({ films, onOpen }: FilmRailProps) {
             >
               <AutoVideo video={v} />
               <div className="absolute inset-0 bg-black/20 transition-colors group-hover:bg-black/0" />
+              {/* Keeps the title legible over bright footage. */}
+              <div aria-hidden="true" className="absolute inset-x-0 bottom-0 h-1/3 bg-gradient-to-t from-black/60 to-transparent" />
               <span className="absolute bottom-4 left-4 font-serif text-lg text-white drop-shadow">{v.title}</span>
             </button>
           ))}
