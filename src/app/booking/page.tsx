@@ -155,7 +155,7 @@ export default function BookingPage() {
       <Navigation variant="solid" />
       <main className="mx-auto max-w-2xl px-6 pt-32 pb-24 md:px-12">
         <h1 className="mb-2 font-serif text-3xl md:text-4xl">Book a session</h1>
-        <p className="mb-10 text-sm leading-relaxed text-foreground-muted">
+        <p className="mb-10 text-sm leading-relaxed text-pretty text-foreground-muted">
           Share the details you have and Anselm will reply with a tailored quote. Fields marked{" "}
           <span className="text-accent">*</span> are required.
         </p>
@@ -373,7 +373,7 @@ export default function BookingPage() {
             disabled={isSubmitting}
             className="mt-2 inline-flex justify-center rounded-full bg-foreground px-8 py-3 text-sm text-background transition-opacity hover:opacity-85 focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-foreground/60 disabled:cursor-not-allowed disabled:opacity-50"
           >
-            {isSubmitting ? "Sending..." : "Send enquiry"}
+            {isSubmitting ? "Sending…" : "Send enquiry"}
           </button>
         </form>
       </main>

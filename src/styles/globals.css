@@ -158,6 +158,19 @@ html {
   scroll-behavior: smooth;
 }
 
+/* Firefox: the same quiet thumb (Chrome keeps the ::-webkit-scrollbar styling below) */
+@supports not selector(::-webkit-scrollbar) {
+  html {
+    scrollbar-color: var(--muted-foreground) transparent;
+  }
+}
+
+/* The text caret takes the warm accent, like the selection */
+input,
+textarea {
+  caret-color: var(--accent);
+}
+
 ::-webkit-scrollbar {
   width: 6px;
 }
