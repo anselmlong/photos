@@ -1,4 +1,4 @@
-import { describe, it, mock } from "node:test";
+import { describe, it } from "node:test";
 import assert from "node:assert/strict";
 import { readPublicJson, reservePublicRequest } from "./public-request";
 
@@ -33,14 +33,16 @@ describe("shared public quotas", () => {
     const token = process.env.UPSTASH_REDIS_REST_TOKEN;
     process.env.UPSTASH_REDIS_REST_URL = "https://redis.example";
     process.env.UPSTASH_REDIS_REST_TOKEN = "test-only";
-    const mockedFetch = mock.method(globalThis, "fetch", async (_url: unknown, options: RequestInit) => {
-      const payload = JSON.parse(String(options.body)) as unknown[];
+    // Swap fetch by hand: node:test's mock.method isn't available under bun test.
+    const realFetch = globalThis.fetch;
+    globalThis.fetch = (async (_url: unknown, options?: RequestInit) => {
+      const payload = JSON.parse(String(options?.body)) as unknown[];
       const pipeline = Array.isArray(payload[0]);
       return Response.json(pipeline ? [{result:6}] : {result:6});
-    });
+    }) as typeof fetch;
     try { await assert.rejects(reservePublicRequest(new Request("https://photos.example"), "enquiry", 5), {status:429}); }
     finally {
-      mockedFetch.mock.restore();
+      globalThis.fetch = realFetch;
       if (url === undefined) delete process.env.UPSTASH_REDIS_REST_URL; else process.env.UPSTASH_REDIS_REST_URL = url;
       if (token === undefined) delete process.env.UPSTASH_REDIS_REST_TOKEN; else process.env.UPSTASH_REDIS_REST_TOKEN = token;
     }
