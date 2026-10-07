@@ -144,7 +144,7 @@ export default function Home() {
               {cat.label}
               <span className="font-sans text-base tabular-nums text-foreground-muted">{catPhotos.length}</span>
             </h2>
-            <div className="columns-1 gap-3 sm:columns-2 lg:columns-3 [&>*]:mb-3">
+            <div className={galleryColumns(catPhotos.length)}>
               {catPhotos.map((p) => (
                 <button
                   key={p.slug}
@@ -183,6 +183,14 @@ export default function Home() {
       />
     </div>
   );
+}
+
+// Small sets fill the row instead of leaving empty columns beside them.
+function galleryColumns(count: number) {
+  const base = "columns-1 gap-3 [&>*]:mb-3";
+  if (count === 1) return `${base} lg:w-2/3`;
+  if (count === 2) return `${base} sm:columns-2`;
+  return `${base} sm:columns-2 lg:columns-3`;
 }
 
 function KindWords() {
