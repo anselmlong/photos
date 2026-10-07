@@ -52,8 +52,9 @@ export function TelegramChat() {
   const poll = useCallback(async () => {
     const session = sessionRef.current;
     if (!session) return;
+    const after = cursorRef.current;
     try {
-      const res = await fetch(`/api/chat/poll?session=${session}&after=${cursorRef.current}`, {
+      const res = await fetch(`/api/chat/poll?session=${session}&after=${after}`, {
         cache: "no-store",
       });
       if (res.status === 503) {
@@ -62,6 +63,9 @@ export function TelegramChat() {
       }
       if (!res.ok) return;
       const data = (await res.json()) as { messages: Msg[]; total: number; hostSeen: number | null };
+      // The interval and a just-sent message can poll at once; drop the slower
+      // reply so the same messages aren't appended twice.
+      if (after !== cursorRef.current) return;
       if (data.messages?.length) {
         setMessages((prev) => [...prev, ...data.messages]);
         cursorRef.current = data.total;
