@@ -16,7 +16,7 @@ export function StarIcon({ filled, className }: { filled: boolean; className?: s
 
 export function Stars({ rating, className }: { rating: number; className?: string }) {
   return (
-    <span className={cn("inline-flex gap-0.5 text-accent", className)} role="img" aria-label={`${rating} out of 5 stars`}>
+    <span className={cn("inline-flex gap-0.5 text-accent", className)} role="img" aria-label={`${Number(rating.toFixed(1))} out of 5 stars`}>
       {[1, 2, 3, 4, 5].map((n) => (
         <StarIcon key={n} filled={n <= Math.round(rating)} />
       ))}

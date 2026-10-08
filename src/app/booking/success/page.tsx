@@ -1,6 +1,11 @@
 import Link from "next/link";
+import { type Metadata } from "next";
 import { Navigation } from "@/app/_components/Navigation";
 import { SuccessCheck } from "@/app/_components/SuccessCheck";
+
+export const metadata: Metadata = {
+  title: "Enquiry received — Anselm Long Photography",
+};
 
 export default function BookingSuccessPage() {
   return (
