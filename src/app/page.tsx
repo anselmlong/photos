@@ -8,13 +8,15 @@ import { useGSAP } from "@gsap/react";
 import { Navigation } from "./_components/Navigation";
 import { AutoVideo } from "./_components/AutoVideo";
 import { OptimizedImage } from "./_components/OptimizedImage";
-import { Lightbox, asPhotoItems, type LightboxItem } from "./_components/Lightbox";
+import { Lightbox, asPhotoItems, lightboxKey, type LightboxItem } from "./_components/Lightbox";
 import { useLightbox } from "./_components/useLightbox";
 import { TelegramChat } from "./_components/TelegramChat";
 import { CategoryIndex } from "./_components/CategoryIndex";
 import { FilmRail } from "./_components/FilmRail";
 import { TestimonialCard } from "./_components/TestimonialCard";
 import { photos, videos, categories } from "@/lib/media";
+import { describePhoto } from "@/lib/photo-label";
+import { cn } from "@/lib/utils";
 import { carousellTestimonials } from "@/lib/testimonials-seed";
 
 gsap.registerPlugin(ScrollTrigger, useGSAP);
@@ -23,6 +25,8 @@ const galleries = categories
   .map((cat) => ({ ...cat, photos: photos.filter((p) => p.category === cat.id) }))
   .filter((g) => g.photos.length > 0);
 const galleryIndex = galleries.map((g) => ({ id: g.id, label: g.label, count: g.photos.length }));
+// The lightbox browses in the order the grid shows, category by category.
+const gridPhotos = galleries.flatMap((g) => g.photos);
 
 export default function Home() {
   const root = useRef<HTMLDivElement>(null);
@@ -32,10 +36,10 @@ export default function Home() {
 
   const items: LightboxItem[] = [
     ...videos.map((v) => ({ kind: "video" as const, ...v })),
-    ...asPhotoItems(photos),
+    ...asPhotoItems(gridPhotos),
   ];
   const lb = useLightbox(items);
-  const photoIndex = (slug: string) => videos.length + photos.findIndex((p) => p.slug === slug);
+  const photoIndex = (slug: string) => videos.length + gridPhotos.findIndex((p) => p.slug === slug);
 
   useGSAP(
     () => {
@@ -125,9 +129,10 @@ export default function Home() {
       {/* ABOUT — moved near the top */}
       <section className="reveal mx-auto max-w-3xl px-6 py-20 text-center md:py-28">
         <p className="mb-6 text-xs uppercase tracking-[0.4em] text-foreground-muted">About</p>
+        {/* The turn to the camera takes the hero's italic; its slant overhangs the space after it, so pad it back. */}
         <p className="font-serif text-2xl leading-relaxed text-balance md:text-3xl">
           I&apos;m Anselm — based in Singapore, studying computer science at NUS and working at the
-          intersection of design and engineering. But I&apos;m happiest behind a camera. This is a
+          intersection of design and engineering. <em className="pr-[0.12em]">But I&apos;m happiest behind a camera.</em> This is a
           collection of the moments I&apos;ve chased: portraits, weddings, events, and the occasional film.
         </p>
       </section>
@@ -148,20 +153,31 @@ export default function Home() {
               {catPhotos.map((p) => (
                 <button
                   key={p.slug}
+                  type="button"
+                  data-lightbox-key={lightboxKey({ kind: "photo", ...p })}
                   onClick={() => lb.open(photoIndex(p.slug))}
-                  className="tile group relative block w-full break-inside-avoid overflow-hidden rounded-sm focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-accent"
+                  // The file-name alts ("Anselm 0093") say nothing, so name the tile by where it sits.
+                  aria-label={`Open ${describePhoto(p, catPhotos).description}`}
+                  className={cn(
+                    "tile group relative block w-full break-inside-avoid overflow-hidden rounded-sm",
+                    // Tabbing to a tile stops it below the sticky nav and category strip, not under them.
+                    "scroll-mt-32 scroll-mb-6 md:scroll-mt-36",
+                    // Drawn outside the frame: inside it, the positioned photo would paint over the ring.
+                    "focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-accent"
+                  )}
                 >
+                  {/* Keyboard focus gets the same zoom and caption a mouse hover does. */}
                   <OptimizedImage
                     photo={p}
-                    className="w-full transition-transform duration-700 ease-out group-hover:scale-[1.05]"
+                    className="w-full transition-transform duration-700 ease-out motion-safe:group-hover:scale-[1.05] motion-safe:group-focus-visible:scale-[1.05]"
                   />
                   <div className="pointer-events-none absolute inset-0 bg-gradient-to-t from-black/70 via-black/0 to-transparent opacity-0 transition-opacity duration-500 group-hover:opacity-100 group-focus-visible:opacity-100" />
                   {/* Autofocus brackets: pointing at a frame snaps focus onto it, like a viewfinder. */}
                   <span aria-hidden="true" className="af-brackets">
                     <span /><span /><span /><span />
                   </span>
-                  <span className="pointer-events-none absolute bottom-6 left-6 flex translate-y-1 items-center gap-1.5 text-[11px] uppercase tracking-widest text-white opacity-0 transition-all duration-300 group-hover:translate-y-0 group-hover:opacity-100 group-focus-visible:translate-y-0 group-focus-visible:opacity-100">
-                    <svg className="h-3.5 w-3.5" fill="none" stroke="currentColor" strokeWidth={1.5} viewBox="0 0 24 24">
+                  <span className="pointer-events-none absolute bottom-6 left-6 flex translate-y-1 items-center gap-1.5 text-[11px] uppercase tracking-widest text-white opacity-0 transition-all duration-300 group-hover:translate-y-0 group-hover:opacity-100 group-focus-visible:translate-y-0 group-focus-visible:opacity-100 motion-reduce:translate-y-0">
+                    <svg className="h-3.5 w-3.5" fill="none" stroke="currentColor" strokeWidth={1.5} viewBox="0 0 24 24" aria-hidden="true">
                       <path strokeLinecap="round" strokeLinejoin="round" d="M3.75 3.75v4.5m0-4.5h4.5m-4.5 0L9 9m11.25-5.25h-4.5m4.5 0v4.5m0-4.5L15 9m-6 6l-5.25 5.25m0 0v-4.5m0 4.5h4.5M15 15l5.25 5.25m0 0v-4.5m0 4.5h-4.5" />
                     </svg>
                     {cat.label}

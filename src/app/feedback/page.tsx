@@ -87,7 +87,8 @@ export default async function FeedbackPage() {
             {featured && (
               <figure className="animate-fadeInUp mb-16 border-y border-border/60 py-12 md:mb-20 md:py-16">
                 <span aria-hidden="true" className="block font-serif text-7xl leading-none text-accent/60">“</span>
-                <blockquote className="-mt-4 max-w-4xl whitespace-pre-line font-serif text-2xl leading-snug md:text-3xl">
+                {/* Set in Playfair's true italic, the voice the hero's "Long" uses, so the lead note reads as quoted speech. */}
+                <blockquote className="-mt-4 max-w-4xl whitespace-pre-line text-pretty font-serif text-2xl italic leading-snug md:text-3xl">
                   {featured.message}
                 </blockquote>
                 <figcaption className="mt-8 flex flex-wrap items-center gap-x-4 gap-y-2 text-sm text-foreground-muted">

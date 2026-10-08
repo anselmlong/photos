@@ -2,6 +2,7 @@
 
 import { useCallback, useEffect, useRef, useState } from "react";
 import { AutoVideo } from "./AutoVideo";
+import { lightboxKey } from "./Lightbox";
 import { cn } from "@/lib/utils";
 import type { VideoClip } from "@/lib/media";
 
@@ -101,10 +102,13 @@ export function FilmRail({ films, onOpen }: FilmRailProps) {
             <button
               key={v.slug}
               type="button"
+              data-lightbox-key={lightboxKey({ kind: "video", ...v })}
               onClick={() => onOpen(v.slug)}
               aria-label={`Play ${v.title}`}
               className={cn(
                 "group relative aspect-video w-[85vw] flex-shrink-0 snap-center overflow-hidden rounded-sm md:w-[60vw] lg:w-[44vw]",
+                // Closing the lightbox on a film scrolls it back into view clear of the fixed nav.
+                "scroll-mt-24 scroll-mb-6",
                 "focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-[-2px] focus-visible:outline-accent"
               )}
             >
