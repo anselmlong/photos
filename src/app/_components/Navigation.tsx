@@ -169,7 +169,7 @@ export function Navigation({ variant = "solid" }: NavigationProps) {
                   : "border-foreground/20 hover:bg-foreground hover:text-background"
               )}
             >
-              Get in Touch
+              Get in touch
             </a>
           </div>
         </div>

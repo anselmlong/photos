@@ -33,13 +33,6 @@ const sourceSans = Source_Sans_3({
   weight: ["300", "400", "500"],
 });
 
-const ecosystemFooterLinkStyle = {
-  color: "#888",
-  fontSize: "0.8rem",
-  textDecoration: "none",
-  letterSpacing: "0.02em",
-};
-
 export default function RootLayout({
   children,
 }: Readonly<{
@@ -51,10 +44,10 @@ export default function RootLayout({
         {/* First in the body, so it is listening before the browser restores a reload's scroll position. */}
         <script dangerouslySetInnerHTML={{ __html: pastHeroScript }} />
         {children}
-        <div style={{ textAlign: "center", padding: "2rem 1rem 1.5rem" }}>
+        <div className="px-4 pt-8 pb-6 text-center">
           <a
             href="https://anselmlong.com?from=photos"
-            style={ecosystemFooterLinkStyle}
+            className="text-[0.8rem] tracking-[0.02em] text-foreground-muted transition-colors hover:text-foreground"
           >
             &larr; part of anselmlong.com
           </a>

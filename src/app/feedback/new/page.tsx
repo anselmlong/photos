@@ -14,7 +14,7 @@ const RATING_WORDS = ["", "Not great", "Okay", "Good", "Great", "Loved it"];
 const MAX_MESSAGE = 1000;
 
 const inputClassName =
-  "w-full rounded-sm border border-border/60 bg-background/60 px-4 py-3 text-[15px] text-foreground placeholder:text-foreground-muted/75 transition-colors focus:border-foreground/50 focus:outline-none focus:ring-2 focus:ring-foreground/20";
+  "w-full rounded-sm border border-border/60 bg-background/60 px-4 py-3 text-[15px] text-foreground placeholder:text-foreground-muted/75 transition-colors focus:border-foreground/50 focus:outline-none focus:ring-2 focus:ring-foreground/20 aria-[invalid=true]:border-red-400/70";
 
 function Step({ n, title, hint, error, children }: { n: number; title: string; hint?: string; error?: string; children: React.ReactNode }) {
   return (
@@ -150,6 +150,8 @@ export default function NewFeedbackPage() {
           <Step n={3} title="In your own words" hint="What was the day like? How did the photos land?" error={errors.message?.message}>
             <textarea
               {...register("message")}
+              aria-label="Your note"
+              aria-invalid={errors.message ? true : undefined}
               rows={6}
               maxLength={MAX_MESSAGE}
               placeholder="Anselm made everyone feel relaxed, and the photos came back within a week…"
@@ -161,7 +163,7 @@ export default function NewFeedbackPage() {
           </Step>
 
           <Step n={4} title="Who's it from?" hint="Shown publicly — a first name or initials is perfect." error={errors.name?.message}>
-            <input {...register("name")} autoComplete="given-name" placeholder="Sarah T." className={inputClassName} />
+            <input {...register("name")} aria-label="Your name" aria-invalid={errors.name ? true : undefined} autoComplete="given-name" placeholder="Sarah T." className={inputClassName} />
           </Step>
 
           {/* Honeypot, hidden from people and assistive tech. */}

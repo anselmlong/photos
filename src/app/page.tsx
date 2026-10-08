@@ -149,7 +149,7 @@ export default function Home() {
               {cat.label}
               <span className="font-sans text-base tabular-nums text-foreground-muted">{catPhotos.length}</span>
             </h2>
-            <div className="columns-1 gap-3 sm:columns-2 lg:columns-3 [&>*]:mb-3">
+            <div className={galleryColumns(catPhotos.length)}>
               {catPhotos.map((p) => (
                 <button
                   key={p.slug}
@@ -172,7 +172,11 @@ export default function Home() {
                     className="w-full transition-transform duration-700 ease-out motion-safe:group-hover:scale-[1.05] motion-safe:group-focus-visible:scale-[1.05]"
                   />
                   <div className="pointer-events-none absolute inset-0 bg-gradient-to-t from-black/70 via-black/0 to-transparent opacity-0 transition-opacity duration-500 group-hover:opacity-100 group-focus-visible:opacity-100" />
-                  <span className="pointer-events-none absolute bottom-3 left-3 flex translate-y-1 items-center gap-1.5 text-[11px] uppercase tracking-widest text-white opacity-0 transition-all duration-300 group-hover:translate-y-0 group-hover:opacity-100 group-focus-visible:translate-y-0 group-focus-visible:opacity-100 motion-reduce:translate-y-0">
+                  {/* Autofocus brackets: pointing at a frame snaps focus onto it, like a viewfinder. */}
+                  <span aria-hidden="true" className="af-brackets">
+                    <span /><span /><span /><span />
+                  </span>
+                  <span className="pointer-events-none absolute bottom-6 left-6 flex translate-y-1 items-center gap-1.5 text-[11px] uppercase tracking-widest text-white opacity-0 transition-all duration-300 group-hover:translate-y-0 group-hover:opacity-100 group-focus-visible:translate-y-0 group-focus-visible:opacity-100 motion-reduce:translate-y-0">
                     <svg className="h-3.5 w-3.5" fill="none" stroke="currentColor" strokeWidth={1.5} viewBox="0 0 24 24" aria-hidden="true">
                       <path strokeLinecap="round" strokeLinejoin="round" d="M3.75 3.75v4.5m0-4.5h4.5m-4.5 0L9 9m11.25-5.25h-4.5m4.5 0v4.5m0-4.5L15 9m-6 6l-5.25 5.25m0 0v-4.5m0 4.5h4.5M15 15l5.25 5.25m0 0v-4.5m0 4.5h-4.5" />
                     </svg>
@@ -199,6 +203,14 @@ export default function Home() {
       />
     </div>
   );
+}
+
+// Small sets fill the row instead of leaving empty columns beside them.
+function galleryColumns(count: number) {
+  const base = "columns-1 gap-3 [&>*]:mb-3";
+  if (count === 1) return `${base} lg:w-2/3`;
+  if (count === 2) return `${base} sm:columns-2`;
+  return `${base} sm:columns-2 lg:columns-3`;
 }
 
 function KindWords() {
