@@ -129,9 +129,10 @@ export default function Home() {
       {/* ABOUT — moved near the top */}
       <section className="reveal mx-auto max-w-3xl px-6 py-20 text-center md:py-28">
         <p className="mb-6 text-xs uppercase tracking-[0.4em] text-foreground-muted">About</p>
+        {/* The turn to the camera takes the hero's italic; its slant overhangs the space after it, so pad it back. */}
         <p className="font-serif text-2xl leading-relaxed text-balance md:text-3xl">
           I&apos;m Anselm — based in Singapore, studying computer science at NUS and working at the
-          intersection of design and engineering. But I&apos;m happiest behind a camera. This is a
+          intersection of design and engineering. <em className="pr-[0.12em]">But I&apos;m happiest behind a camera.</em> This is a
           collection of the moments I&apos;ve chased: portraits, weddings, events, and the occasional film.
         </p>
       </section>
