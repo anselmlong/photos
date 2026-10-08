@@ -2,6 +2,7 @@ import "@/styles/globals.css";
 
 import { type Metadata } from "next";
 import { Playfair_Display, Source_Sans_3 } from "next/font/google";
+import { pastHeroScript } from "./_components/past-hero";
 
 export const metadata: Metadata = {
   title: "Anselm Long — Photography",
@@ -14,11 +15,15 @@ export const metadata: Metadata = {
   },
 };
 
+// Headings only ever use the regular weight; the italic is the hero's "Long", the About
+// line's turn to the camera and the featured note on /feedback, which the browser would
+// otherwise fake by slanting the roman.
 const playfair = Playfair_Display({
   subsets: ["latin"],
   variable: "--font-playfair",
   display: "swap",
-  weight: ["400", "500", "600"],
+  weight: ["400"],
+  style: ["normal", "italic"],
 });
 
 const sourceSans = Source_Sans_3({
@@ -28,13 +33,6 @@ const sourceSans = Source_Sans_3({
   weight: ["300", "400", "500"],
 });
 
-const ecosystemFooterLinkStyle = {
-  color: "#888",
-  fontSize: "0.8rem",
-  textDecoration: "none",
-  letterSpacing: "0.02em",
-};
-
 export default function RootLayout({
   children,
 }: Readonly<{
@@ -43,11 +41,13 @@ export default function RootLayout({
   return (
     <html lang="en" className={`dark ${playfair.variable} ${sourceSans.variable}`}>
       <body className="bg-background text-foreground min-h-screen">
+        {/* First in the body, so it is listening before the browser restores a reload's scroll position. */}
+        <script dangerouslySetInnerHTML={{ __html: pastHeroScript }} />
         {children}
-        <div style={{ textAlign: "center", padding: "2rem 1rem 1.5rem" }}>
+        <div className="px-4 pt-8 pb-6 text-center">
           <a
             href="https://anselmlong.com?from=photos"
-            style={ecosystemFooterLinkStyle}
+            className="text-[0.8rem] tracking-[0.02em] text-foreground-muted transition-colors hover:text-foreground"
           >
             &larr; part of anselmlong.com
           </a>

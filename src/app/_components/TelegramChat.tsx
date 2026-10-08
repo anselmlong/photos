@@ -39,6 +39,7 @@ export function TelegramChat() {
   const [messages, setMessages] = useState<Msg[]>([]);
   const [draft, setDraft] = useState("");
   const [sending, setSending] = useState(false);
+  const [sendFailed, setSendFailed] = useState(false);
   const [unavailable, setUnavailable] = useState(false);
   const [name, setName] = useState("");
   const [nameInput, setNameInput] = useState("");
@@ -51,8 +52,9 @@ export function TelegramChat() {
   const poll = useCallback(async () => {
     const session = sessionRef.current;
     if (!session) return;
+    const after = cursorRef.current;
     try {
-      const res = await fetch(`/api/chat/poll?session=${session}&after=${cursorRef.current}`, {
+      const res = await fetch(`/api/chat/poll?session=${session}&after=${after}`, {
         cache: "no-store",
       });
       if (res.status === 503) {
@@ -61,6 +63,9 @@ export function TelegramChat() {
       }
       if (!res.ok) return;
       const data = (await res.json()) as { messages: Msg[]; total: number; hostSeen: number | null };
+      // The interval and a just-sent message can poll at once; drop the slower
+      // reply so the same messages aren't appended twice.
+      if (after !== cursorRef.current) return;
       if (data.messages?.length) {
         setMessages((prev) => [...prev, ...data.messages]);
         cursorRef.current = data.total;
@@ -99,7 +104,13 @@ export function TelegramChat() {
     const text = draft.trim();
     if (!text || sending) return;
     setSending(true);
+    setSendFailed(false);
     setDraft("");
+    // A message that didn't go through comes back to the box instead of vanishing.
+    const restore = () => {
+      setDraft((current) => current || text);
+      setSendFailed(true);
+    };
     try {
       const res = await fetch("/api/chat/send", {
         method: "POST",
@@ -110,9 +121,11 @@ export function TelegramChat() {
         setUnavailable(true);
       } else if (res.ok) {
         await poll(); // pull the stored copy back so ordering matches the server
+      } else {
+        restore();
       }
     } catch {
-      /* swallow; visitor can retry */
+      restore();
     } finally {
       setSending(false);
     }
@@ -152,7 +165,7 @@ export function TelegramChat() {
                   </span>
                   <div className="leading-tight">
                     <div className="font-serif text-base text-white">Chat with Anselm</div>
-                    <div className="text-[11px] text-white/45">{p.label}</div>
+                    <div className="text-[11px] text-white/60">{p.label}</div>
                   </div>
                 </>
               );
@@ -191,12 +204,13 @@ export function TelegramChat() {
                 maxLength={80}
                 autoFocus
                 placeholder="Your name"
-                className="mt-2 w-full rounded-xl border border-white/10 bg-white/5 px-3 py-2 text-center text-sm text-white placeholder:text-white/30 focus:border-white/30 focus:outline-none"
+                aria-label="Your name"
+                className="mt-2 w-full rounded-xl border border-white/10 bg-white/5 px-3 py-2 text-center text-sm text-white placeholder:text-white/50 focus:border-white/50 focus:outline-none"
               />
               <button
                 type="submit"
                 disabled={!nameInput.trim()}
-                className="mt-1 w-full rounded-xl bg-white px-4 py-2 text-sm font-medium text-black transition-opacity hover:opacity-90 disabled:opacity-30"
+                className="mt-1 w-full rounded-xl bg-white px-4 py-2 text-sm font-medium text-black transition-opacity hover:opacity-90 disabled:opacity-30 focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-white/70"
               >
                 Start chatting
               </button>
@@ -207,49 +221,62 @@ export function TelegramChat() {
                 Hey {name} — this is a live chat, so Anselm will reply personally (from Telegram).
                 It may take a little while; keep this tab open and his reply will show up right here.
               </div>
-              {messages.map((m, i) => (
-                <div key={i} className={cn("flex", m.from === "visitor" ? "justify-end" : "justify-start")}>
-                  <div
-                    className={cn(
-                      "max-w-[80%] whitespace-pre-wrap rounded-2xl px-3 py-2 text-sm",
-                      m.from === "visitor" ? "bg-white text-black" : "bg-white/10 text-white"
-                    )}
-                  >
-                    {m.text}
+              <div role="log" aria-live="polite" aria-label="Messages" className="space-y-3">
+                {messages.map((m, i) => (
+                  <div key={i} className={cn("flex", m.from === "visitor" ? "justify-end" : "justify-start")}>
+                    <div
+                      className={cn(
+                        "max-w-[80%] whitespace-pre-wrap rounded-2xl px-3 py-2 text-sm",
+                        m.from === "visitor" ? "bg-white text-black" : "bg-white/10 text-white"
+                      )}
+                    >
+                      {m.text}
+                    </div>
                   </div>
-                </div>
-              ))}
+                ))}
+              </div>
               <div ref={bottomRef} />
             </>
           )}
         </div>
 
         {!unavailable && name && (
-          <form onSubmit={send} className="flex items-end gap-2 border-t border-white/10 p-3">
-            <textarea
-              value={draft}
-              onChange={(e) => setDraft(e.target.value)}
-              onKeyDown={(e) => {
-                if (e.key === "Enter" && !e.shiftKey) {
-                  e.preventDefault();
-                  send(e);
-                }
-              }}
-              rows={1}
-              maxLength={2000}
-              placeholder="Write a message…"
-              className="max-h-28 flex-1 resize-none rounded-xl border border-white/10 bg-white/5 px-3 py-2 text-sm text-white placeholder:text-white/30 focus:border-white/30 focus:outline-none"
-            />
-            <button
-              type="submit"
-              disabled={sending || !draft.trim()}
-              className="flex h-9 w-9 shrink-0 items-center justify-center rounded-full bg-white text-black transition-opacity hover:opacity-90 disabled:opacity-30"
-              aria-label="Send"
-            >
-              <svg className="h-4 w-4" fill="none" stroke="currentColor" strokeWidth={2} viewBox="0 0 24 24">
-                <path strokeLinecap="round" strokeLinejoin="round" d="M6 12L3.27 3.27a.5.5 0 01.67-.6l16.5 8.25a.5.5 0 010 .9L3.94 20.33a.5.5 0 01-.67-.6L6 12zm0 0h6" />
-              </svg>
-            </button>
+          <form onSubmit={send} className="border-t border-white/10 p-3">
+            {sendFailed && (
+              <p role="alert" className="mb-2 px-1 text-xs text-red-300">
+                That didn&apos;t send. Check your connection and try again.
+              </p>
+            )}
+            <div className="flex items-end gap-2">
+              <textarea
+                value={draft}
+                aria-label="Message"
+                onChange={(e) => {
+                  setDraft(e.target.value);
+                  setSendFailed(false);
+                }}
+                onKeyDown={(e) => {
+                  if (e.key === "Enter" && !e.shiftKey) {
+                    e.preventDefault();
+                    send(e);
+                  }
+                }}
+                rows={1}
+                maxLength={2000}
+                placeholder="Write a message…"
+                className="max-h-28 flex-1 resize-none rounded-xl border border-white/10 bg-white/5 px-3 py-2 text-sm text-white placeholder:text-white/50 focus:border-white/50 focus:outline-none"
+              />
+              <button
+                type="submit"
+                disabled={sending || !draft.trim()}
+                className="flex h-10 w-10 shrink-0 items-center justify-center rounded-full bg-white text-black transition-opacity hover:opacity-90 disabled:opacity-30 focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-white/70"
+                aria-label="Send"
+              >
+                <svg className="h-4 w-4" fill="none" stroke="currentColor" strokeWidth={2} viewBox="0 0 24 24">
+                  <path strokeLinecap="round" strokeLinejoin="round" d="M6 12L3.27 3.27a.5.5 0 01.67-.6l16.5 8.25a.5.5 0 010 .9L3.94 20.33a.5.5 0 01-.67-.6L6 12zm0 0h6" />
+                </svg>
+              </button>
+            </div>
           </form>
         )}
       </div>
