@@ -33,7 +33,7 @@ describe("shared public quotas", () => {
     const token = process.env.UPSTASH_REDIS_REST_TOKEN;
     process.env.UPSTASH_REDIS_REST_URL = "https://redis.example";
     process.env.UPSTASH_REDIS_REST_TOKEN = "test-only";
-    // Swap fetch by hand: node:test's mock.method isn't available under bun test.
+    // Stubbed by hand rather than with mock.method, which Bun's node:test shim doesn't provide.
     const realFetch = globalThis.fetch;
     globalThis.fetch = (async (_url: unknown, options?: RequestInit) => {
       const payload = JSON.parse(String(options?.body)) as unknown[];

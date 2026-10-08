@@ -62,6 +62,7 @@ export function CategoryIndex({ categories }: CategoryIndexProps) {
   return (
     <nav
       aria-label="Photo categories"
+      // The overlay nav above is already solid by the time this strip sticks (it's below the hero).
       className="sticky top-16 z-40 border-b border-border/60 bg-background/85 backdrop-blur-md md:top-20"
     >
       <div ref={rail} className="no-scrollbar flex gap-1 overflow-x-auto px-4 py-2.5 md:px-10">
