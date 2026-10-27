@@ -51,6 +51,17 @@ export default function RootLayout({
           >
             &larr; part of anselmlong.com
           </a>
+          <span className="mx-2 text-[0.8rem] text-foreground-muted opacity-50" aria-hidden="true">
+            &middot;
+          </span>
+          <a
+            href="https://ko-fi.com/anselmlong"
+            target="_blank"
+            rel="noopener"
+            className="text-[0.8rem] tracking-[0.02em] text-foreground-muted transition-colors hover:text-foreground"
+          >
+            &#9749; support me on ko-fi
+          </a>
         </div>
       </body>
     </html>
